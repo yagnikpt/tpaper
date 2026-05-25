@@ -1,18 +1,22 @@
 {
-  "name": "dblocks",
-  "module": "src/index.tsx",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun run --watch src/index.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@opentui/core": "^0.2.15"
-  }
+	"name": "dblocks",
+	"module": "src/index.tsx",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun run --watch src/index.tsx"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@opentui/core": "^0.2.15",
+		"@opentui/solid": "^0.2.15",
+		"env-paths": "^4.0.0",
+		"gray-matter": "^4.0.3",
+		"solid-js": "^1.9.13"
+	}
 }
