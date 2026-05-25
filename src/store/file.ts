@@ -29,6 +29,12 @@ function writeBlockFile(buffer: string, block: Block) {
 	return blockPath;
 }
 
+function readBlockFileByPath(path: string): Block {
+	const content = fs.readFileSync(path, "utf-8");
+	const { data, content: blockContent } = matter(content);
+	return { id: data.id, title: data.title, content: blockContent };
+}
+
 function getBuffers() {
 	if (!fs.existsSync(paths.data)) {
 		return [] as string[];
@@ -45,7 +51,7 @@ function getBuffers() {
 	}
 }
 
-function getBufferMarkdownFiles(buffer: string) {
+function getBufferFiles(buffer: string) {
 	const bufferPath = path.join(paths.data, buffer);
 
 	if (!fs.existsSync(bufferPath)) {
@@ -56,17 +62,16 @@ function getBufferMarkdownFiles(buffer: string) {
 		return fs
 			.readdirSync(bufferPath, { withFileTypes: true })
 			.filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-			.map((entry) => entry.name)
-			.sort((a, b) => a.localeCompare(b));
+			.map((entry) => path.join(bufferPath, entry.name));
 	} catch {
 		return [] as string[];
 	}
 }
 
-function walkBufferMarkdownFiles() {
+function walkBufferFiles() {
 	const buffers = getBuffers();
 	const filesByBuffer = Object.fromEntries(
-		buffers.map((buffer) => [buffer, getBufferMarkdownFiles(buffer)]),
+		buffers.map((buffer) => [buffer, getBufferFiles(buffer)]),
 	) as Record<string, string[]>;
 
 	return { buffers, filesByBuffer };
@@ -74,8 +79,9 @@ function walkBufferMarkdownFiles() {
 
 export {
 	ensureAppDir,
-	getBufferMarkdownFiles,
+	getBufferFiles,
 	getBuffers,
-	walkBufferMarkdownFiles,
+	readBlockFileByPath,
+	walkBufferFiles,
 	writeBlockFile,
 };

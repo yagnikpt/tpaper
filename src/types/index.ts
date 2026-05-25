@@ -4,11 +4,13 @@ interface Block {
 	content: string;
 }
 
+type Buffer = Block[];
+
 interface Store {
-	screen: "buffers" | "edit";
+	screen: "blocks" | "edit";
 	activeBlock: string | null;
 	activeBuffer: string;
-	blocks: Block[];
+	buffers: Record<string, Buffer>;
 }
 
-export type { Block, Store };
+export type { Block, Buffer, Store };
