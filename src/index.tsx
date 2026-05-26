@@ -2,20 +2,24 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { render, useRenderer } from "@opentui/solid";
 import { Match, Switch } from "solid-js";
+import ModalRoot from "@/components/modal-root";
 import Blocks from "@/pages/blocks";
 import EditBlock from "@/pages/edit-block";
-import { store } from "@/store";
+import { store } from "@/store/client";
 
 const App = () => {
 	return (
-		<Switch>
-			<Match when={store.screen === "blocks"}>
-				<Blocks />
-			</Match>
-			<Match when={store.screen === "edit"}>
-				<EditBlock />
-			</Match>
-		</Switch>
+		<box flexGrow={1}>
+			<Switch>
+				<Match when={store.screen === "blocks"}>
+					<Blocks />
+				</Match>
+				<Match when={store.screen === "edit"}>
+					<EditBlock />
+				</Match>
+			</Switch>
+			<ModalRoot />
+		</box>
 	);
 };
 

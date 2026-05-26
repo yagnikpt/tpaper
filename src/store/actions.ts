@@ -1,12 +1,11 @@
 import { randomUUIDv7 } from "bun";
-import { setStore, store } from "@/store";
 import {
 	deleteBlockFile,
 	readBlockFileByPath,
 	walkBufferFiles,
 	writeBlockFile,
 } from "@/store/file";
-import type { Block, Buffer } from "@/types";
+import type { Block } from "@/types";
 import { sortBlocksDesc } from "@/utils";
 import { DEFAULT_BUFFER } from "@/utils/contants";
 
@@ -17,64 +16,45 @@ function createNewBlock(buffer: string, title: string) {
 		content: "",
 	};
 	writeBlockFile(buffer, block);
-	setStore("buffers", buffer, () => [
-		...(store.buffers[buffer] as Buffer),
-		block,
-	]);
 	return block;
 }
 
 function writeBlock(buffer: string, block: Block) {
 	writeBlockFile(buffer, block);
-	const sorted = sortBlocksDesc([
-		...(store.buffers[buffer]?.filter((b) => b.id !== block.id) as Buffer),
-		block,
-	]);
-	setStore("buffers", buffer, () => sorted);
+	return block;
 }
 
-function renameBlockTitle(buffer: string, blockId: string, title: string) {
+function renameBlockTitle(
+	buffer: string,
+	allBlocks: Block[],
+	block: Block,
+	title: string,
+) {
 	const nextTitle = title.trim();
 	if (!nextTitle) return false;
 
-	const blocks = (store.buffers[buffer] ?? []) as Buffer;
-	const currentBlock = blocks.find((block) => block.id === blockId);
-	if (!currentBlock) return false;
-
-	if (currentBlock.title === nextTitle) {
-		return true;
+	if (block.title === nextTitle) {
+		return block;
 	}
 
-	const duplicate = blocks.find(
-		(block) => block.id !== blockId && block.title === nextTitle,
+	const duplicate = allBlocks.find(
+		(b) => b.id !== block.id && b.title === nextTitle,
 	);
 	if (duplicate) {
 		return false;
 	}
 
-	deleteBlockFile(buffer, currentBlock.title);
+	deleteBlockFile(buffer, block.title);
 	const updatedBlock: Block = {
-		...currentBlock,
+		...block,
 		title: nextTitle,
 	};
 	writeBlockFile(buffer, updatedBlock);
-
-	const sorted = sortBlocksDesc([
-		...blocks.filter((block) => block.id !== blockId),
-		updatedBlock,
-	]);
-	setStore("buffers", buffer, () => sorted);
-	return true;
+	return updatedBlock;
 }
 
-function deleteBlock(buffer: string, blockId: string) {
-	const blocks = (store.buffers[buffer] ?? []) as Buffer;
-	const currentBlock = blocks.find((block) => block.id === blockId);
-	if (!currentBlock) return;
-
-	deleteBlockFile(buffer, currentBlock.title);
-	const sorted = sortBlocksDesc(blocks.filter((block) => block.id !== blockId));
-	setStore("buffers", buffer, () => sorted);
+function deleteBlock(buffer: string, block: Block) {
+	deleteBlockFile(buffer, block.title);
 }
 
 function loadInitialStore() {

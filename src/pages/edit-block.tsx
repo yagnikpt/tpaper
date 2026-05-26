@@ -1,9 +1,10 @@
 import type { TextareaRenderable } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import { setStore, store } from "@/store";
 import { writeBlock } from "@/store/actions";
+import { setStore, store } from "@/store/client";
 import type { Buffer } from "@/types";
+import { sortBlocksDesc } from "@/utils";
 
 const EditBlock = () => {
 	const cBlock = ((store.buffers[store.activeBuffer] ?? []) as Buffer).find(
@@ -37,9 +38,18 @@ const EditBlock = () => {
 		}));
 	});
 
-	onCleanup(() => {
-		writeBlock(store.activeBuffer, currentBlock()!);
-	});
+	function write() {
+		const block = writeBlock(store.activeBuffer, currentBlock()!);
+		const sorted = sortBlocksDesc([
+			...(store.buffers[store.activeBuffer]?.filter(
+				(b) => b.id !== block.id,
+			) as Buffer),
+			block,
+		]);
+		setStore("buffers", store.activeBuffer, () => sorted);
+	}
+
+	onCleanup(write);
 
 	return (
 		<box border title={currentBlock()?.title} borderColor="#CCC" flexGrow={1}>

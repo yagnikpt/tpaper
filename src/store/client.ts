@@ -9,6 +9,9 @@ const [store, setStore] = createStore<Store>({
 	activeBlock: null,
 	activeBuffer,
 	buffers,
+	modal: {
+		type: null,
+	},
 });
 
 export { setStore, store };

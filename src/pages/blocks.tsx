@@ -1,10 +1,10 @@
 import { RGBA, type ScrollBoxRenderable, SyntaxStyle } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { createEffect, createSignal, For } from "solid-js";
-import { setStore, store } from "@/store";
 import { createNewBlock, deleteBlock } from "@/store/actions";
+import { setStore, store } from "@/store/client";
 import type { Block } from "@/types";
-import { clamp } from "@/utils";
+import { clamp, sortBlocksDesc } from "@/utils";
 
 const syntaxStyle = SyntaxStyle.fromStyles({
 	"markup.heading.1": { fg: RGBA.fromHex("#58A6FF"), bold: true },
@@ -26,15 +26,30 @@ const Blocks = () => {
 	});
 
 	useBindings(() => ({
-		enabled: store.screen === "blocks",
+		enabled: store.screen === "blocks" && store.modal.type === null,
 		commands: [
 			{
 				name: "create-block",
 				run() {
-					createNewBlock(
+					const block = createNewBlock(
 						store.activeBuffer,
 						`New Block ${currentBlocks().length + 1}`,
 					);
+					setStore("buffers", store.activeBuffer, () => [
+						...currentBlocks(),
+						block,
+					]);
+				},
+			},
+			{
+				name: "edit-title",
+				run() {
+					const selected = currentBlocks()[focused()];
+					if (!selected) return;
+					setStore("modal", {
+						type: "edit-block-title",
+						payload: { blockId: selected.id },
+					});
 				},
 			},
 			{
@@ -66,13 +81,18 @@ const Blocks = () => {
 				run() {
 					const selected = currentBlocks()[focused()];
 					if (!selected) return;
-					deleteBlock(store.activeBuffer, selected.id);
+					deleteBlock(store.activeBuffer, selected);
+					const blocks = sortBlocksDesc(
+						currentBlocks().filter((block) => block.id !== selected.id),
+					);
+					setStore("buffers", store.activeBuffer, () => blocks);
 				},
 			},
 		],
 		bindings: [
 			{ key: "ctrl+b", cmd: "create-block" },
 			{ key: "ctrl+d", cmd: "delete-block" },
+			{ key: "ctrl+t", cmd: "edit-title" },
 			{ key: "up", cmd: "focus-up" },
 			{ key: "down", cmd: "focus-down" },
 			{ key: "return", cmd: "open-block" },

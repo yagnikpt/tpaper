@@ -3,7 +3,6 @@ import path from "node:path";
 import envPaths from "env-paths";
 import matter from "gray-matter";
 import type { Block } from "@/types";
-import { sortBlocksDesc } from "@/utils";
 
 const paths = envPaths("dblocks", { suffix: "cli" });
 
