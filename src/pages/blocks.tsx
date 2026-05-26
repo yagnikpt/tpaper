@@ -48,7 +48,7 @@ const Blocks = () => {
 					if (!selected) return;
 					setStore("modal", {
 						type: "edit-block-title",
-						payload: { blockId: selected.id },
+						payload: { block: selected },
 					});
 				},
 			},
@@ -107,7 +107,7 @@ const Blocks = () => {
 			ref={scrollBoxRef}
 		>
 			{currentBlocks().length === 0 && (
-				<box>
+				<box flexGrow={1} justifyContent="center" alignItems="center">
 					<text>No blocks! Create one with ctrl+b</text>
 				</box>
 			)}

@@ -50,6 +50,40 @@ function deleteBlockFile(buffer: string, title: string) {
 	}
 }
 
+function createBufferDir(name: string) {
+	const buffer = name.trim();
+	if (!buffer) return false;
+
+	const bufferPath = path.join(paths.data, buffer);
+	if (fs.existsSync(bufferPath)) {
+		return false;
+	}
+
+	try {
+		ensureAppDir(buffer);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function deleteBufferDir(name: string) {
+	const buffer = name.trim();
+	if (!buffer) return false;
+
+	const bufferPath = path.join(paths.data, buffer);
+	if (!fs.existsSync(bufferPath)) {
+		return false;
+	}
+
+	try {
+		fs.rmSync(bufferPath, { recursive: true, force: true });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 function getBuffers() {
 	if (!fs.existsSync(paths.data)) {
 		return [] as string[];
@@ -93,7 +127,9 @@ function walkBufferFiles() {
 }
 
 export {
+	createBufferDir,
 	deleteBlockFile,
+	deleteBufferDir,
 	ensureAppDir,
 	getBlockFilePath,
 	getBufferFiles,

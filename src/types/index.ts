@@ -1,4 +1,9 @@
-type ModalType = "new-buffer" | "edit-block-title" | "buffer-picker" | null;
+type ModalType =
+	| "new-buffer"
+	| "rename-buffer"
+	| "edit-block-title"
+	| "buffer-picker"
+	| null;
 
 interface Block {
 	id: string;
@@ -16,7 +21,7 @@ interface Store {
 	modal: {
 		type: ModalType;
 		payload?: {
-			blockId: string;
+			block: Block;
 		};
 	};
 }

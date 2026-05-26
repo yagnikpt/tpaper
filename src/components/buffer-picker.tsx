@@ -1,4 +1,6 @@
+import { useBindings } from "@opentui/keymap/solid";
 import { createSignal } from "solid-js";
+import { deleteBuffer } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 
 const BufferPicker = () => {
@@ -10,6 +12,38 @@ const BufferPicker = () => {
 	const foundIndex = options.findIndex((b) => b.value === store.activeBuffer);
 	const index = foundIndex !== -1 ? foundIndex : 0;
 	const [highlighted, setHighlighted] = createSignal(index);
+
+	useBindings(() => ({
+		commands: [
+			{
+				name: "new-buffer",
+				run() {
+					setStore("modal", { type: "new-buffer" });
+				},
+			},
+			{
+				name: "delete-buffer",
+				run() {
+					const deletedBuffer = deleteBuffer(
+						options.map((o) => o.value)[highlighted()]!,
+						store.buffers,
+					);
+					if (deletedBuffer) {
+						setStore("buffers", (b) => {
+							delete b[deletedBuffer];
+							return b;
+						});
+						setStore("activeBuffer", Object.keys(store.buffers)[0]!);
+					}
+					setStore("modal", { type: null, payload: undefined });
+				},
+			},
+		],
+		bindings: [
+			{ key: "ctrl+n", cmd: "new-buffer" },
+			{ key: "ctrl+d", cmd: "delete-buffer" },
+		],
+	}));
 
 	function onSelect(value: string) {
 		setStore("screen", "blocks");
@@ -36,9 +70,6 @@ const BufferPicker = () => {
 					}
 				}}
 			/>
-			{/*<text alignSelf="flex-end" attributes={TextAttributes.DIM}>
-				^n: create new buffer
-			</text>*/}
 		</box>
 	);
 };

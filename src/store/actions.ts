@@ -1,6 +1,8 @@
 import { randomUUIDv7 } from "bun";
 import {
+	createBufferDir,
 	deleteBlockFile,
+	deleteBufferDir,
 	readBlockFileByPath,
 	walkBufferFiles,
 	writeBlockFile,
@@ -8,6 +10,38 @@ import {
 import type { Block } from "@/types";
 import { sortBlocksDesc } from "@/utils";
 import { DEFAULT_BUFFER } from "@/utils/contants";
+
+function createNewBuffer(name: string, allBuffers: Record<string, Block[]>) {
+	const nextName = name.trim();
+	if (!nextName) return false;
+
+	if (allBuffers[nextName]) {
+		return false;
+	}
+
+	const created = createBufferDir(nextName);
+	if (!created) {
+		return false;
+	}
+
+	return nextName;
+}
+
+function deleteBuffer(name: string, allBuffers: Record<string, Block[]>) {
+	const target = name.trim();
+	if (!target) return false;
+
+	if (!allBuffers[target]) {
+		return false;
+	}
+
+	const deleted = deleteBufferDir(target);
+	if (!deleted) {
+		return false;
+	}
+
+	return target;
+}
 
 function createNewBlock(buffer: string, title: string) {
 	const block = {
@@ -84,7 +118,9 @@ function loadInitialStore() {
 
 export {
 	createNewBlock,
+	createNewBuffer,
 	deleteBlock,
+	deleteBuffer,
 	loadInitialStore,
 	renameBlockTitle,
 	writeBlock,
