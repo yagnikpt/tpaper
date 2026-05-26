@@ -1,4 +1,4 @@
-type ModalType = "new-buffer" | "edit-block-title" | "select-buffer" | null;
+type ModalType = "new-buffer" | "edit-block-title" | "buffer-picker" | null;
 
 interface Block {
 	id: string;

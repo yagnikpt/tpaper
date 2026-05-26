@@ -17,7 +17,7 @@ const EditBlock = () => {
 	let textAreaRef: TextareaRenderable | undefined;
 
 	useBindings(() => ({
-		enabled: store.screen === "edit",
+		enabled: store.screen === "edit" && store.modal.type === null,
 		commands: [
 			{
 				name: "back-to-blocks",

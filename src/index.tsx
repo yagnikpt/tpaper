@@ -5,9 +5,21 @@ import { Match, Switch } from "solid-js";
 import ModalRoot from "@/components/modal-root";
 import Blocks from "@/pages/blocks";
 import EditBlock from "@/pages/edit-block";
-import { store } from "@/store/client";
+import { setStore, store } from "@/store/client";
 
 const App = () => {
+	useBindings(() => ({
+		commands: [
+			{
+				name: "open-buffer-picker",
+				run() {
+					setStore("modal", { type: "buffer-picker" });
+				},
+			},
+		],
+		bindings: [{ key: "ctrl+p", cmd: "open-buffer-picker" }],
+	}));
+
 	return (
 		<box flexGrow={1}>
 			<Switch>

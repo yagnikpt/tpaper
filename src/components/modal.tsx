@@ -5,11 +5,18 @@ import { setStore } from "@/store/client";
 interface ModalProps {
 	title: string;
 	children: JSX.Element;
+	footer?: string;
 	width?: number | "auto" | `${number}%`;
 	height?: number | "auto" | `${number}%`;
 }
 
-const Modal = ({ title, children, width = "60%", height = 8 }: ModalProps) => {
+const Modal = ({
+	title,
+	children,
+	footer,
+	width = "60%",
+	height = 8,
+}: ModalProps) => {
 	useKeyboard((key) => {
 		if (key.name === "escape") {
 			setStore("modal", { type: null, payload: undefined });
@@ -42,8 +49,11 @@ const Modal = ({ title, children, width = "60%", height = 8 }: ModalProps) => {
 				height={height}
 				titleAlignment="center"
 				title={title}
+				bottomTitleAlignment="right"
+				bottomTitle={footer}
 				backgroundColor="#222"
 				border
+				marginBottom={3}
 			>
 				{children}
 			</box>

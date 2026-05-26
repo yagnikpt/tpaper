@@ -65,7 +65,7 @@ const Blocks = () => {
 				},
 			},
 			{
-				name: "open-block",
+				name: "edit-block",
 				run() {
 					const selected = currentBlocks()[focused()];
 					if (!selected) return;
@@ -95,7 +95,8 @@ const Blocks = () => {
 			{ key: "ctrl+t", cmd: "edit-title" },
 			{ key: "up", cmd: "focus-up" },
 			{ key: "down", cmd: "focus-down" },
-			{ key: "return", cmd: "open-block" },
+			{ key: "return", cmd: "edit-block" },
+			{ key: "i", cmd: "edit-block" },
 		],
 	}));
 
@@ -107,7 +108,7 @@ const Blocks = () => {
 		>
 			{currentBlocks().length === 0 && (
 				<box>
-					<text>No blocks</text>
+					<text>No blocks! Create one with ctrl+b</text>
 				</box>
 			)}
 			<For each={currentBlocks()}>
