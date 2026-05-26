@@ -2,7 +2,7 @@ import { RGBA, type ScrollBoxRenderable, SyntaxStyle } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { createEffect, createSignal, For } from "solid-js";
 import { setStore, store } from "@/store";
-import { createNewBlock } from "@/store/actions";
+import { createNewBlock, deleteBlock } from "@/store/actions";
 import type { Block } from "@/types";
 import { clamp } from "@/utils";
 
@@ -61,9 +61,18 @@ const Blocks = () => {
 					});
 				},
 			},
+			{
+				name: "delete-block",
+				run() {
+					const selected = currentBlocks()[focused()];
+					if (!selected) return;
+					deleteBlock(store.activeBuffer, selected.id);
+				},
+			},
 		],
 		bindings: [
 			{ key: "ctrl+b", cmd: "create-block" },
+			{ key: "ctrl+d", cmd: "delete-block" },
 			{ key: "up", cmd: "focus-up" },
 			{ key: "down", cmd: "focus-down" },
 			{ key: "return", cmd: "open-block" },

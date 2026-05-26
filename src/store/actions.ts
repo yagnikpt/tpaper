@@ -1,6 +1,7 @@
 import { randomUUIDv7 } from "bun";
 import { setStore, store } from "@/store";
 import {
+	deleteBlockFile,
 	readBlockFileByPath,
 	walkBufferFiles,
 	writeBlockFile,
@@ -32,6 +33,50 @@ function writeBlock(buffer: string, block: Block) {
 	setStore("buffers", buffer, () => sorted);
 }
 
+function renameBlockTitle(buffer: string, blockId: string, title: string) {
+	const nextTitle = title.trim();
+	if (!nextTitle) return false;
+
+	const blocks = (store.buffers[buffer] ?? []) as Buffer;
+	const currentBlock = blocks.find((block) => block.id === blockId);
+	if (!currentBlock) return false;
+
+	if (currentBlock.title === nextTitle) {
+		return true;
+	}
+
+	const duplicate = blocks.find(
+		(block) => block.id !== blockId && block.title === nextTitle,
+	);
+	if (duplicate) {
+		return false;
+	}
+
+	deleteBlockFile(buffer, currentBlock.title);
+	const updatedBlock: Block = {
+		...currentBlock,
+		title: nextTitle,
+	};
+	writeBlockFile(buffer, updatedBlock);
+
+	const sorted = sortBlocksDesc([
+		...blocks.filter((block) => block.id !== blockId),
+		updatedBlock,
+	]);
+	setStore("buffers", buffer, () => sorted);
+	return true;
+}
+
+function deleteBlock(buffer: string, blockId: string) {
+	const blocks = (store.buffers[buffer] ?? []) as Buffer;
+	const currentBlock = blocks.find((block) => block.id === blockId);
+	if (!currentBlock) return;
+
+	deleteBlockFile(buffer, currentBlock.title);
+	const sorted = sortBlocksDesc(blocks.filter((block) => block.id !== blockId));
+	setStore("buffers", buffer, () => sorted);
+}
+
 function loadInitialStore() {
 	const { filesByBuffer } = walkBufferFiles();
 	const buffers: Record<string, Block[]> = {};
@@ -57,4 +102,10 @@ function loadInitialStore() {
 	return { buffers, activeBuffer };
 }
 
-export { createNewBlock, loadInitialStore, writeBlock };
+export {
+	createNewBlock,
+	deleteBlock,
+	loadInitialStore,
+	renameBlockTitle,
+	writeBlock,
+};

@@ -3,6 +3,7 @@ import path from "node:path";
 import envPaths from "env-paths";
 import matter from "gray-matter";
 import type { Block } from "@/types";
+import { sortBlocksDesc } from "@/utils";
 
 const paths = envPaths("dblocks", { suffix: "cli" });
 
@@ -17,9 +18,13 @@ function ensureAppDir(inner?: string) {
 	}
 }
 
+function getBlockFilePath(buffer: string, title: string) {
+	return path.join(paths.data, buffer, `${title}.md`);
+}
+
 function writeBlockFile(buffer: string, block: Block) {
 	ensureAppDir(buffer);
-	const blockPath = path.join(paths.data, buffer, `${block.title}.md`);
+	const blockPath = getBlockFilePath(buffer, block.title);
 	const { content, ...meta } = block;
 	try {
 		fs.writeFileSync(blockPath, matter.stringify(content, meta));
@@ -34,6 +39,16 @@ function readBlockFileByPath(path: string): Block {
 	const { data, content: blockContent } = matter(content);
 	const processedBlockContent = blockContent.trim() === "" ? "" : blockContent;
 	return { id: data.id, title: data.title, content: processedBlockContent };
+}
+
+function deleteBlockFile(buffer: string, title: string) {
+	const blockPath = getBlockFilePath(buffer, title);
+	if (!fs.existsSync(blockPath)) return;
+	try {
+		fs.unlinkSync(blockPath);
+	} catch (e) {
+		throw new Error(`Failed to delete block file: ${e}`);
+	}
 }
 
 function getBuffers() {
@@ -79,7 +94,9 @@ function walkBufferFiles() {
 }
 
 export {
+	deleteBlockFile,
 	ensureAppDir,
+	getBlockFilePath,
 	getBufferFiles,
 	getBuffers,
 	readBlockFileByPath,
