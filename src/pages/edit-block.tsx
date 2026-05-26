@@ -1,13 +1,19 @@
+import type { TextareaRenderable } from "@opentui/core";
 import { useKeyboard } from "@opentui/solid";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import { setStore, store } from "@/store";
+import { writeBlock } from "@/store/actions";
 import type { Buffer } from "@/types";
 
 const EditBlock = () => {
-	const currentBlock = (store.buffers[store.activeBuffer] as Buffer).filter(
+	const cBlock = ((store.buffers[store.activeBuffer] ?? []) as Buffer).find(
 		(b) => b.id === store.activeBlock,
-	)[0];
-	const [input, setInput] = createSignal(currentBlock?.content ?? "");
+	);
+
+	const [currentBlock, setCurrentBlock] = createSignal(cBlock);
+	if (!currentBlock()) return null;
+	const [input, setInput] = createSignal(currentBlock()!.content ?? "");
+	let textAreaRef: TextareaRenderable | undefined;
 
 	useKeyboard((key) => {
 		if (key.ctrl) {
@@ -23,14 +29,27 @@ const EditBlock = () => {
 	});
 
 	createEffect(() => {
-		console.log(input());
+		setCurrentBlock((b) => ({
+			id: b!.id,
+			content: input(),
+			title: b!.title,
+		}));
+	});
+
+	onCleanup(() => {
+		writeBlock(store.activeBuffer, currentBlock()!);
 	});
 
 	return (
-		<box flexGrow={1}>
+		<box border borderColor="#CCC" flexGrow={1}>
 			<textarea
+				ref={textAreaRef}
+				focused
+				placeholder="Enter the note..."
 				initialValue={input()}
-				onContentChange={(v) => setInput(v.toString())}
+				onContentChange={() => {
+					if (textAreaRef) setInput(textAreaRef.plainText);
+				}}
 			/>
 		</box>
 	);

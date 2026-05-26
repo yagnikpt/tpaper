@@ -6,6 +6,7 @@ import {
 	writeBlockFile,
 } from "@/store/file";
 import type { Block, Buffer } from "@/types";
+import { sortBlocksDesc } from "@/utils";
 import { DEFAULT_BUFFER } from "@/utils/contants";
 
 function createNewBlock(buffer: string, title: string) {
@@ -15,14 +16,21 @@ function createNewBlock(buffer: string, title: string) {
 		content: "",
 	};
 	writeBlockFile(buffer, block);
-	setStore("buffers", store.activeBuffer, () => [
-		...(store.buffers[store.activeBuffer] as Buffer),
+	setStore("buffers", buffer, () => [
+		...(store.buffers[buffer] as Buffer),
 		block,
 	]);
 	return block;
 }
 
-// function writeBlock(buffer: string, block: Block) {}
+function writeBlock(buffer: string, block: Block) {
+	writeBlockFile(buffer, block);
+	const sorted = sortBlocksDesc([
+		...(store.buffers[buffer]?.filter((b) => b.id !== block.id) as Buffer),
+		block,
+	]);
+	setStore("buffers", buffer, () => sorted);
+}
 
 function loadInitialStore() {
 	const { filesByBuffer } = walkBufferFiles();
@@ -35,7 +43,8 @@ function loadInitialStore() {
 			const block = readBlockFileByPath(blockPath);
 			blocks.push(block);
 		}
-		buffers[buffer] = blocks;
+		const sortedBlocks = sortBlocksDesc(blocks);
+		buffers[buffer] = sortedBlocks;
 	}
 
 	let activeBuffer = DEFAULT_BUFFER;
@@ -48,4 +57,4 @@ function loadInitialStore() {
 	return { buffers, activeBuffer };
 }
 
-export { createNewBlock, loadInitialStore };
+export { createNewBlock, loadInitialStore, writeBlock };

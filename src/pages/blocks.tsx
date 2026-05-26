@@ -15,15 +15,15 @@ const syntaxStyle = SyntaxStyle.fromStyles({
 
 const Blocks = () => {
 	const [focused, setFocused] = createSignal(0);
+	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
 
 	useKeyboard((key) => {
 		if (key.ctrl) {
 			switch (key.name) {
 				case "b": {
-					const currentBlocks = store.buffers[store.activeBuffer] ?? [];
 					createNewBlock(
 						store.activeBuffer,
-						`New Block ${currentBlocks.length + 1}`,
+						`New Block ${currentBlocks().length + 1}`,
 					);
 					break;
 				}
@@ -31,30 +31,33 @@ const Blocks = () => {
 			return;
 		}
 
-		const currentBlocks = store.buffers[store.activeBuffer] ?? [];
 		switch (key.name) {
 			case "up":
-				setFocused((prev) => clamp(prev - 1, 0, currentBlocks.length - 1));
+				setFocused((prev) => clamp(prev - 1, 0, currentBlocks().length - 1));
 				break;
 			case "down":
-				setFocused((prev) => clamp(prev + 1, 0, currentBlocks.length - 1));
+				setFocused((prev) => clamp(prev + 1, 0, currentBlocks().length - 1));
 				break;
-			case "return":
-				console.log("hehe");
-				setStore("activeBlock", (currentBlocks[focused()] as Block).id);
-				setStore("screen", "edit");
-				break;
+			case "return": {
+				const selected = currentBlocks()[focused()];
+				if (!selected) return;
+				const selectedId = (selected as Block).id;
+				queueMicrotask(() => {
+					setStore("activeBlock", selectedId);
+					setStore("screen", "edit");
+				});
+			}
 		}
 	});
 
 	return (
 		<scrollbox>
-			{store.buffers[store.activeBuffer]?.length === 0 && (
+			{currentBlocks().length === 0 && (
 				<box>
 					<text>No blocks</text>
 				</box>
 			)}
-			<For each={store.buffers[store.activeBuffer]}>
+			<For each={currentBlocks()}>
 				{(item, index) => (
 					<box
 						border

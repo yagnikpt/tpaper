@@ -32,7 +32,8 @@ function writeBlockFile(buffer: string, block: Block) {
 function readBlockFileByPath(path: string): Block {
 	const content = fs.readFileSync(path, "utf-8");
 	const { data, content: blockContent } = matter(content);
-	return { id: data.id, title: data.title, content: blockContent };
+	const processedBlockContent = blockContent.trim() === "" ? "" : blockContent;
+	return { id: data.id, title: data.title, content: processedBlockContent };
 }
 
 function getBuffers() {
