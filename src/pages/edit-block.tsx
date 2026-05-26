@@ -1,5 +1,5 @@
 import type { TextareaRenderable } from "@opentui/core";
-import { useKeyboard } from "@opentui/solid";
+import { useBindings } from "@opentui/keymap/solid";
 import { createEffect, createSignal, onCleanup } from "solid-js";
 import { setStore, store } from "@/store";
 import { writeBlock } from "@/store/actions";
@@ -15,18 +15,19 @@ const EditBlock = () => {
 	const [input, setInput] = createSignal(currentBlock()!.content ?? "");
 	let textAreaRef: TextareaRenderable | undefined;
 
-	useKeyboard((key) => {
-		if (key.ctrl) {
-			return;
-		}
-
-		switch (key.name) {
-			case "escape":
-				setStore("screen", "blocks");
-				setStore("activeBlock", null);
-				break;
-		}
-	});
+	useBindings(() => ({
+		enabled: store.screen === "edit",
+		commands: [
+			{
+				name: "back-to-blocks",
+				run() {
+					setStore("screen", "blocks");
+					setStore("activeBlock", null);
+				},
+			},
+		],
+		bindings: [{ key: "escape", cmd: "back-to-blocks" }],
+	}));
 
 	createEffect(() => {
 		setCurrentBlock((b) => ({
@@ -41,7 +42,7 @@ const EditBlock = () => {
 	});
 
 	return (
-		<box border borderColor="#CCC" flexGrow={1}>
+		<box border title={currentBlock()?.title} borderColor="#CCC" flexGrow={1}>
 			<textarea
 				ref={textAreaRef}
 				focused

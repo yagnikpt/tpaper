@@ -1,5 +1,5 @@
 import { RGBA, SyntaxStyle } from "@opentui/core";
-import { useKeyboard } from "@opentui/solid";
+import { useBindings } from "@opentui/keymap/solid";
 import { createSignal, For } from "solid-js";
 import { setStore, store } from "@/store";
 import { createNewBlock } from "@/store/actions";
@@ -17,38 +17,50 @@ const Blocks = () => {
 	const [focused, setFocused] = createSignal(0);
 	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
 
-	useKeyboard((key) => {
-		if (key.ctrl) {
-			switch (key.name) {
-				case "b": {
+	useBindings(() => ({
+		enabled: store.screen === "blocks",
+		commands: [
+			{
+				name: "create-block",
+				run() {
 					createNewBlock(
 						store.activeBuffer,
 						`New Block ${currentBlocks().length + 1}`,
 					);
-					break;
-				}
-			}
-			return;
-		}
-
-		switch (key.name) {
-			case "up":
-				setFocused((prev) => clamp(prev - 1, 0, currentBlocks().length - 1));
-				break;
-			case "down":
-				setFocused((prev) => clamp(prev + 1, 0, currentBlocks().length - 1));
-				break;
-			case "return": {
-				const selected = currentBlocks()[focused()];
-				if (!selected) return;
-				const selectedId = (selected as Block).id;
-				queueMicrotask(() => {
-					setStore("activeBlock", selectedId);
-					setStore("screen", "edit");
-				});
-			}
-		}
-	});
+				},
+			},
+			{
+				name: "focus-up",
+				run() {
+					setFocused((prev) => clamp(prev - 1, 0, currentBlocks().length - 1));
+				},
+			},
+			{
+				name: "focus-down",
+				run() {
+					setFocused((prev) => clamp(prev + 1, 0, currentBlocks().length - 1));
+				},
+			},
+			{
+				name: "open-block",
+				run() {
+					const selected = currentBlocks()[focused()];
+					if (!selected) return;
+					const selectedId = (selected as Block).id;
+					queueMicrotask(() => {
+						setStore("activeBlock", selectedId);
+						setStore("screen", "edit");
+					});
+				},
+			},
+		],
+		bindings: [
+			{ key: "ctrl+b", cmd: "create-block" },
+			{ key: "up", cmd: "focus-up" },
+			{ key: "down", cmd: "focus-down" },
+			{ key: "return", cmd: "open-block" },
+		],
+	}));
 
 	return (
 		<scrollbox>
