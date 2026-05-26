@@ -1,6 +1,6 @@
-import { RGBA, SyntaxStyle } from "@opentui/core";
+import { RGBA, type ScrollBoxRenderable, SyntaxStyle } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
-import { createSignal, For } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import { setStore, store } from "@/store";
 import { createNewBlock } from "@/store/actions";
 import type { Block } from "@/types";
@@ -16,6 +16,14 @@ const syntaxStyle = SyntaxStyle.fromStyles({
 const Blocks = () => {
 	const [focused, setFocused] = createSignal(0);
 	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
+	let scrollBoxRef: ScrollBoxRenderable | undefined;
+
+	createEffect(() => {
+		if (scrollBoxRef) {
+			const currentFocusedBlock = currentBlocks()[focused()];
+			scrollBoxRef.scrollChildIntoView(`block-${currentFocusedBlock?.id}`);
+		}
+	});
 
 	useBindings(() => ({
 		enabled: store.screen === "blocks",
@@ -63,7 +71,11 @@ const Blocks = () => {
 	}));
 
 	return (
-		<scrollbox>
+		<scrollbox
+			viewportCulling
+			scrollbarOptions={{ width: 0 }}
+			ref={scrollBoxRef}
+		>
 			{currentBlocks().length === 0 && (
 				<box>
 					<text>No blocks</text>
@@ -72,6 +84,7 @@ const Blocks = () => {
 			<For each={currentBlocks()}>
 				{(item, index) => (
 					<box
+						id={`block-${item.id}`}
 						border
 						opacity={focused() === index() ? 1 : 0.7}
 						borderColor={focused() === index() ? "#CCC" : "#888"}
