@@ -21,7 +21,8 @@ interface Store {
 	modal: {
 		type: ModalType;
 		payload?: {
-			block: Block;
+			block?: Block;
+			bufferName?: string;
 		};
 	};
 }

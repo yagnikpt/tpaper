@@ -4,6 +4,7 @@ import {
 	deleteBlockFile,
 	deleteBufferDir,
 	readBlockFileByPath,
+	renameBufferDir,
 	walkBufferFiles,
 	writeBlockFile,
 } from "@/store/file";
@@ -41,6 +42,35 @@ function deleteBuffer(name: string, allBuffers: Record<string, Block[]>) {
 	}
 
 	return target;
+}
+
+function renameBuffer(
+	currentName: string,
+	nextName: string,
+	allBuffers: Record<string, Block[]>,
+) {
+	const current = currentName.trim();
+	const next = nextName.trim();
+	if (!current || !next) return false;
+
+	if (!allBuffers[current]) {
+		return false;
+	}
+
+	if (current === next) {
+		return next;
+	}
+
+	if (allBuffers[next]) {
+		return false;
+	}
+
+	const renamed = renameBufferDir(current, next);
+	if (!renamed) {
+		return false;
+	}
+
+	return next;
 }
 
 function createNewBlock(buffer: string, title: string) {
@@ -123,5 +153,6 @@ export {
 	deleteBuffer,
 	loadInitialStore,
 	renameBlockTitle,
+	renameBuffer,
 	writeBlock,
 };

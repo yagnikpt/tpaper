@@ -2,14 +2,18 @@ import { Match, Switch } from "solid-js";
 import BufferPicker from "@/components/buffer-picker";
 import Input from "@/components/input";
 import Modal from "@/components/modal";
-import { createNewBuffer, renameBlockTitle } from "@/store/actions";
+import {
+	createNewBuffer,
+	renameBlockTitle,
+	renameBuffer,
+} from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import { sortBlocksDesc } from "@/utils";
 
 const ModalRoot = () => {
 	function renameAction(value: string) {
 		const currentBlock = store.buffers[store.activeBuffer]?.filter(
-			(b) => b.id === store.modal.payload?.block.id,
+			(b) => b.id === store.modal.payload?.block?.id,
 		)[0];
 		if (!currentBlock) return;
 
@@ -45,12 +49,34 @@ const ModalRoot = () => {
 		setStore("modal", { type: null, payload: undefined });
 	}
 
+	function renameBufferAction(newVal: string) {
+		const currentName = store.modal.payload?.bufferName;
+		if (!currentName) {
+			setStore("modal", { type: null, payload: undefined });
+			return;
+		}
+
+		const nextName = renameBuffer(currentName, newVal, store.buffers);
+		if (nextName) {
+			setStore("buffers", (currentBuffers) => {
+				currentBuffers[nextName] = { ...currentBuffers[currentName]! };
+				delete currentBuffers[currentName];
+				return currentBuffers;
+			});
+			if (store.activeBuffer === currentName) {
+				setStore("activeBuffer", nextName);
+			}
+		}
+
+		setStore("modal", { type: null, payload: undefined });
+	}
+
 	return (
 		<Switch>
 			<Match when={store.modal.type === "edit-block-title"}>
 				<Modal height={5} title="Edit Title">
 					<Input
-						initialValue={store.modal.payload?.block.title}
+						initialValue={store.modal.payload?.block?.title}
 						onSubmit={renameAction}
 					/>
 				</Modal>
@@ -67,6 +93,14 @@ const ModalRoot = () => {
 			<Match when={store.modal.type === "new-buffer"}>
 				<Modal height={5} title="New Buffer">
 					<Input onSubmit={newBuffer} />
+				</Modal>
+			</Match>
+			<Match when={store.modal.type === "rename-buffer"}>
+				<Modal height={5} title="Rename Buffer">
+					<Input
+						initialValue={store.modal.payload?.bufferName}
+						onSubmit={renameBufferAction}
+					/>
 				</Modal>
 			</Match>
 		</Switch>

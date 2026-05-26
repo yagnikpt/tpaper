@@ -84,6 +84,27 @@ function deleteBufferDir(name: string) {
 	}
 }
 
+function renameBufferDir(currentName: string, nextName: string) {
+	const current = currentName.trim();
+	const next = nextName.trim();
+	if (!current || !next) return false;
+	if (current === next) return true;
+
+	const currentPath = path.join(paths.data, current);
+	const nextPath = path.join(paths.data, next);
+
+	if (!fs.existsSync(currentPath) || fs.existsSync(nextPath)) {
+		return false;
+	}
+
+	try {
+		fs.renameSync(currentPath, nextPath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 function getBuffers() {
 	if (!fs.existsSync(paths.data)) {
 		return [] as string[];
@@ -135,6 +156,7 @@ export {
 	getBufferFiles,
 	getBuffers,
 	readBlockFileByPath,
+	renameBufferDir,
 	walkBufferFiles,
 	writeBlockFile,
 };

@@ -41,7 +41,7 @@ const Modal = ({
 				width={"100%"}
 				height={"100%"}
 				flexGrow={1}
-				backgroundColor={"#000"}
+				backgroundColor={"#1d2021"}
 				opacity={0.2}
 			/>
 			<box
@@ -51,7 +51,7 @@ const Modal = ({
 				title={title}
 				bottomTitleAlignment="right"
 				bottomTitle={footer}
-				backgroundColor="#222"
+				backgroundColor="#282828"
 				border
 				marginBottom={3}
 			>

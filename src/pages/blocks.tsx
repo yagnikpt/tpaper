@@ -7,10 +7,20 @@ import type { Block } from "@/types";
 import { clamp, sortBlocksDesc } from "@/utils";
 
 const syntaxStyle = SyntaxStyle.fromStyles({
-	"markup.heading.1": { fg: RGBA.fromHex("#58A6FF"), bold: true },
-	"markup.list": { fg: RGBA.fromHex("#FF7B72") },
-	"markup.raw": { fg: RGBA.fromHex("#A5D6FF") },
-	default: { fg: RGBA.fromHex("#E6EDF3") },
+	default: { fg: RGBA.fromHex("#E6E0D6") },
+	"markup.heading": { fg: RGBA.fromHex("#F0E6D2"), bold: true },
+	"markup.heading.1": { fg: RGBA.fromHex("#F4D9B2"), bold: true },
+	"markup.heading.2": { fg: RGBA.fromHex("#EED0A6"), bold: true },
+	"markup.heading.3": { fg: RGBA.fromHex("#E6C7A4"), bold: true },
+	"markup.strong": { fg: RGBA.fromHex("#F7E7C3"), bold: true },
+	"markup.italic": { fg: RGBA.fromHex("#D8C9B2") },
+	"markup.list": { fg: RGBA.fromHex("#C7B299") },
+	"markup.link": { fg: RGBA.fromHex("#8AB4F8"), underline: true },
+	"markup.quote": { fg: RGBA.fromHex("#B7C0B2"), italic: true },
+	"markup.raw": { fg: RGBA.fromHex("#BFD9EA") },
+	"markup.code": { fg: RGBA.fromHex("#BFD9EA") },
+	"markup.strikethrough": { fg: RGBA.fromHex("#B9A38C"), dim: true },
+	"markup.table": { fg: RGBA.fromHex("#D2C2A9") },
 });
 
 const Blocks = () => {

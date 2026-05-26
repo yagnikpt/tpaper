@@ -22,12 +22,22 @@ const BufferPicker = () => {
 				},
 			},
 			{
+				name: "rename-buffer",
+				run() {
+					const selected = options.map((o) => o.value)[highlighted()];
+					if (!selected) return;
+					setStore("modal", {
+						type: "rename-buffer",
+						payload: { bufferName: selected },
+					});
+				},
+			},
+			{
 				name: "delete-buffer",
 				run() {
-					const deletedBuffer = deleteBuffer(
-						options.map((o) => o.value)[highlighted()]!,
-						store.buffers,
-					);
+					const selected = options.map((o) => o.value)[highlighted()];
+					if (!selected) return;
+					const deletedBuffer = deleteBuffer(selected, store.buffers);
 					if (deletedBuffer) {
 						setStore("buffers", (b) => {
 							delete b[deletedBuffer];
@@ -41,6 +51,7 @@ const BufferPicker = () => {
 		],
 		bindings: [
 			{ key: "ctrl+n", cmd: "new-buffer" },
+			{ key: "f2", cmd: "rename-buffer" },
 			{ key: "ctrl+d", cmd: "delete-buffer" },
 		],
 	}));
@@ -56,6 +67,9 @@ const BufferPicker = () => {
 	return (
 		<box>
 			<select
+				selectedTextColor={"#EED0A6"}
+				selectedBackgroundColor={"#3c3836"}
+				backgroundColor={"#282828"}
 				focused
 				width={"100%"}
 				height={6}
