@@ -3,7 +3,9 @@ import path from "node:path";
 import envPaths from "env-paths";
 import type { Block } from "@/types";
 
-const paths = envPaths("dblocks", { suffix: "cli" });
+const paths = envPaths("tpaper", { suffix: "cli" });
+
+const DATA_DIR = paths.data;
 
 const BLOCK_DELIMITER_REGEX =
 	/<!--\s*BLOCK\s+uuid="([^"]+)"\s+title="([^"]*)"\s*-->/g;
@@ -181,6 +183,7 @@ function walkBufferFiles() {
 }
 
 export {
+	DATA_DIR,
 	createBufferFile,
 	deleteBufferFile,
 	ensureAppDir,

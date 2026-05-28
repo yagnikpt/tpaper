@@ -10,7 +10,7 @@ const workerRelativePath = path
 
 const target =
 	(process.env.BUN_TARGET as Bun.Build.CompileTarget) ?? "bun-linux-x64-modern";
-const outfile = process.env.OUTFILE ?? "./dist/dblocks";
+const outfile = process.env.OUTFILE ?? "./dist/tpaper";
 
 const result = await Bun.build({
 	entrypoints: ["./src/index.tsx", parserWorker],

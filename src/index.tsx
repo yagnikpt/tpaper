@@ -3,6 +3,7 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { render, useRenderer } from "@opentui/solid";
 import { createEffect, Match, Switch } from "solid-js";
+import { handleCLIArgs } from "@/cli";
 import ModalRoot from "@/components/modal-root";
 import { saveConfig } from "@/config";
 import Blocks from "@/pages/blocks";
@@ -71,5 +72,6 @@ const Root = () => {
 	);
 };
 
+handleCLIArgs();
 initializeStore();
 render(Root);

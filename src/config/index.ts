@@ -8,7 +8,7 @@ const DEFAULT_CONFIG: Config = {
 	lastActiveBuffer: "main",
 };
 
-const { config: configDir } = envPaths("dblocks", { suffix: "cli" });
+const { config: configDir } = envPaths("tpaper", { suffix: "cli" });
 const CONFIG_FILE = path.join(configDir, "config.yaml");
 
 function loadConfig(): Config {

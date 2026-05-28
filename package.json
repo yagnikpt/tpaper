@@ -1,12 +1,11 @@
 {
-	"name": "dblocks",
+	"name": "tpaper",
 	"module": "src/index.tsx",
 	"type": "module",
 	"private": true,
 	"scripts": {
 		"dev": "bun run --watch src/index.tsx",
-		"build": "bun run build.ts",
-		"build:release": "mkdir -p dist && bun run build.ts"
+		"build": "bun run build.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
