@@ -1,5 +1,6 @@
 import { useBindings } from "@opentui/keymap/solid";
 import { createSignal } from "solid-js";
+import useTheme from "@/hooks/useTheme";
 import { deleteBuffer } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 
@@ -12,6 +13,7 @@ const BufferPicker = () => {
 	const foundIndex = options.findIndex((b) => b.value === store.activeBuffer);
 	const index = foundIndex !== -1 ? foundIndex : 0;
 	const [highlighted, setHighlighted] = createSignal(index);
+	const { theme } = useTheme();
 
 	useBindings(() => ({
 		commands: [
@@ -89,9 +91,10 @@ const BufferPicker = () => {
 	return (
 		<box>
 			<select
-				selectedTextColor={"#EED0A6"}
-				selectedBackgroundColor={"#3c3836"}
-				backgroundColor={"#282828"}
+				selectedTextColor={theme().accent}
+				selectedBackgroundColor={theme().surfaceVariant}
+				backgroundColor={theme().surface}
+				focusedBackgroundColor={theme().surface}
 				focused
 				width={"100%"}
 				height={6}

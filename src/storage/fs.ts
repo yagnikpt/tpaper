@@ -46,12 +46,11 @@ function parseBlocks(content: string): Block[] {
 	const blocks: Block[] = [];
 	const matches = [...content.matchAll(BLOCK_DELIMITER_REGEX)];
 
-	for (let i = 0; i < matches.length; i++) {
-		const match = matches[i]!;
+	for (const [i, match] of matches.entries()) {
 		const nextMatch = matches[i + 1];
 		const id = unescapeAttr(match[1] ?? "");
 		const title = unescapeAttr(match[2] ?? "");
-		const contentStart = match.index! + match[0].length;
+		const contentStart = match.index + match[0].length;
 		const contentEnd = nextMatch?.index ?? content.length;
 		let blockContent = content.slice(contentStart, contentEnd);
 		if (blockContent.startsWith("\n")) {
@@ -183,8 +182,8 @@ function walkBufferFiles() {
 }
 
 export {
-	DATA_DIR,
 	createBufferFile,
+	DATA_DIR,
 	deleteBufferFile,
 	ensureAppDir,
 	getBufferFilePath,

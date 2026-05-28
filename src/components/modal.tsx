@@ -1,5 +1,6 @@
 import { useKeyboard } from "@opentui/solid";
 import { type JSX, Show } from "solid-js";
+import useTheme from "@/hooks/useTheme";
 import { setStore, store } from "@/store/client";
 
 interface ModalProps {
@@ -26,6 +27,7 @@ const Modal = ({
 			});
 		}
 	});
+	const { theme, mode } = useTheme();
 
 	return (
 		<box
@@ -45,8 +47,8 @@ const Modal = ({
 				width={"100%"}
 				height={"100%"}
 				flexGrow={1}
-				backgroundColor={"#1d2021"}
-				opacity={0.2}
+				backgroundColor={theme().bg}
+				opacity={mode() === "light" ? 0.8 : 0.2}
 			/>
 			<box
 				width={width}
@@ -55,14 +57,15 @@ const Modal = ({
 				title={title}
 				bottomTitleAlignment="right"
 				bottomTitle={footer}
-				backgroundColor="#282828"
+				backgroundColor={theme().surface}
 				border
+				borderColor={theme().border}
 				marginBottom={3}
 				justifyContent="space-between"
 			>
 				{children}
 				<Show when={store.modal.errorMsg}>
-					<text alignSelf="flex-end" fg="#e96962">
+					<text alignSelf="flex-end" fg={theme().error}>
 						{store.modal.errorMsg}
 					</text>
 				</Show>

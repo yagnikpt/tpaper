@@ -1,32 +1,94 @@
 import { RGBA, type ScrollBoxRenderable, SyntaxStyle } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { createEffect, createSignal, For } from "solid-js";
+import useTheme from "@/hooks/useTheme";
 import { createNewBlock, deleteBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Block } from "@/types";
 import { clamp } from "@/utils";
 
-const syntaxStyle = SyntaxStyle.fromStyles({
+const darkSyntaxStyle = SyntaxStyle.fromStyles({
+	// Base fallback
 	default: { fg: RGBA.fromHex("#E6E0D6") },
+
+	// Conceal markers / borders
+	conceal: { fg: RGBA.fromHex("#6B6B6B") },
+
+	// Headings with hierarchy
 	"markup.heading": { fg: RGBA.fromHex("#F0E6D2"), bold: true },
 	"markup.heading.1": { fg: RGBA.fromHex("#F4D9B2"), bold: true },
 	"markup.heading.2": { fg: RGBA.fromHex("#EED0A6"), bold: true },
 	"markup.heading.3": { fg: RGBA.fromHex("#E6C7A4"), bold: true },
+	"markup.heading.4": { fg: RGBA.fromHex("#DEBA9E"), bold: true },
+	"markup.heading.5": { fg: RGBA.fromHex("#D4AD96"), bold: true },
+	"markup.heading.6": { fg: RGBA.fromHex("#CAA08E"), bold: true },
+
+	// Inline formatting
 	"markup.strong": { fg: RGBA.fromHex("#F7E7C3"), bold: true },
-	"markup.italic": { fg: RGBA.fromHex("#D8C9B2") },
+	"markup.bold": { fg: RGBA.fromHex("#F7E7C3"), bold: true },
+	"markup.italic": { fg: RGBA.fromHex("#D8C9B2"), italic: true },
+	"markup.em": { fg: RGBA.fromHex("#D8C9B2"), italic: true },
+	"markup.strikethrough": { fg: RGBA.fromHex("#B9A38C"), dim: true },
+
+	// Lists
 	"markup.list": { fg: RGBA.fromHex("#C7B299") },
+
+	// Links
 	"markup.link": { fg: RGBA.fromHex("#8AB4F8"), underline: true },
+	"markup.link.label": { fg: RGBA.fromHex("#8AB4F8"), underline: true },
+	"markup.link.url": { fg: RGBA.fromHex("#5C9CFF"), underline: true },
+
+	// Blockquotes
 	"markup.quote": { fg: RGBA.fromHex("#B7C0B2"), italic: true },
+
+	// Code / raw
 	"markup.raw": { fg: RGBA.fromHex("#BFD9EA") },
 	"markup.code": { fg: RGBA.fromHex("#BFD9EA") },
-	"markup.strikethrough": { fg: RGBA.fromHex("#B9A38C"), dim: true },
+	"markup.raw.block": { fg: RGBA.fromHex("#BFD9EA") },
+
+	// Tables
 	"markup.table": { fg: RGBA.fromHex("#D2C2A9") },
+});
+
+const lightSyntaxStyle = SyntaxStyle.fromStyles({
+	default: { fg: RGBA.fromHex("#2D2A26") },
+	conceal: { fg: RGBA.fromHex("#9E9E9E") },
+
+	"markup.heading": { fg: RGBA.fromHex("#1A1612"), bold: true },
+	"markup.heading.1": { fg: RGBA.fromHex("#8B4513"), bold: true },
+	"markup.heading.2": { fg: RGBA.fromHex("#A0522D"), bold: true },
+	"markup.heading.3": { fg: RGBA.fromHex("#B8860B"), bold: true },
+	"markup.heading.4": { fg: RGBA.fromHex("#CD853F"), bold: true },
+	"markup.heading.5": { fg: RGBA.fromHex("#D2A679"), bold: true },
+	"markup.heading.6": { fg: RGBA.fromHex("#C4A882"), bold: true },
+
+	"markup.strong": { fg: RGBA.fromHex("#1A1612"), bold: true },
+	"markup.bold": { fg: RGBA.fromHex("#1A1612"), bold: true },
+	"markup.italic": { fg: RGBA.fromHex("#4A453D"), italic: true },
+	"markup.em": { fg: RGBA.fromHex("#4A453D"), italic: true },
+	"markup.strikethrough": { fg: RGBA.fromHex("#8B7D6B"), dim: true },
+
+	"markup.list": { fg: RGBA.fromHex("#6B5B4F") },
+
+	"markup.link": { fg: RGBA.fromHex("#1A56DB"), underline: true },
+	"markup.link.label": { fg: RGBA.fromHex("#1A56DB"), underline: true },
+	"markup.link.url": { fg: RGBA.fromHex("#1E40AF"), underline: true },
+
+	"markup.quote": { fg: RGBA.fromHex("#5C6658"), italic: true },
+
+	"markup.raw": { fg: RGBA.fromHex("#2C5282") },
+	"markup.code": { fg: RGBA.fromHex("#2C5282") },
+	"markup.raw.block": { fg: RGBA.fromHex("#2C5282") },
+
+	"markup.table": { fg: RGBA.fromHex("#4A453D") },
 });
 
 const Blocks = () => {
 	const [focused, setFocused] = createSignal(0);
 	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
 	let scrollBoxRef: ScrollBoxRenderable | undefined;
+
+	const { theme, mode } = useTheme();
 
 	createEffect(() => {
 		if (scrollBoxRef) {
@@ -88,7 +150,9 @@ const Blocks = () => {
 				run() {
 					const selected = currentBlocks()[focused()];
 					if (!selected) return;
-					const blocks = currentBlocks().filter((block) => block.id !== selected.id);
+					const blocks = currentBlocks().filter(
+						(block) => block.id !== selected.id,
+					);
 					deleteBlock(store.activeBuffer, selected, currentBlocks());
 					setStore("buffers", store.activeBuffer, () => blocks);
 					if (focused() > 0) setFocused((p) => p - 1);
@@ -124,17 +188,25 @@ const Blocks = () => {
 						border
 						backgroundColor={
 							focused() === index() && store.modal.type === null
-								? "#282828"
+								? theme().surface
 								: "transparent"
 						}
 						// opacity={focused() === index() ? 1 : 0.7}
-						borderColor={focused() === index() ? "#CCC" : "#888"}
+						borderColor={focused() === index() ? theme().border : "#888"}
 						title={item.title}
 					>
 						<markdown
 							paddingBottom={item.content.trim() === "" ? 1 : 0}
-							syntaxStyle={syntaxStyle}
+							syntaxStyle={
+								mode() === "light" ? lightSyntaxStyle : darkSyntaxStyle
+							}
 							content={item.content}
+							renderNode={(token, context) => {
+								if (token.type === "heading") {
+									return context.defaultRender(); // or return a custom renderable
+								}
+								return undefined; // fall back to default
+							}}
 						/>
 					</box>
 				)}
