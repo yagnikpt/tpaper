@@ -2,8 +2,9 @@ import "@opentui/solid/preload";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { render, useRenderer } from "@opentui/solid";
-import { Match, Switch } from "solid-js";
+import { createEffect, Match, Switch } from "solid-js";
 import ModalRoot from "@/components/modal-root";
+import { saveConfig } from "@/config";
 import Blocks from "@/pages/blocks";
 import EditBlock from "@/pages/edit-block";
 import { initializeStore, setStore, store } from "@/store/client";
@@ -20,6 +21,10 @@ const App = () => {
 		],
 		bindings: [{ key: "ctrl+p", cmd: "open-buffer-picker" }],
 	}));
+
+	createEffect(() => {
+		saveConfig(store.config);
+	});
 
 	return (
 		<box flexGrow={1}>

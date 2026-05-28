@@ -4,7 +4,7 @@ import { createEffect, createSignal, For } from "solid-js";
 import { createNewBlock, deleteBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Block } from "@/types";
-import { clamp, sortBlocksDesc } from "@/utils";
+import { clamp } from "@/utils";
 
 const syntaxStyle = SyntaxStyle.fromStyles({
 	default: { fg: RGBA.fromHex("#E6E0D6") },
@@ -41,13 +41,11 @@ const Blocks = () => {
 			{
 				name: "create-block",
 				run() {
-					const nextTitle = getNextBlockTitle(currentBlocks());
-					const block = createNewBlock(store.activeBuffer, nextTitle);
-					setStore("buffers", store.activeBuffer, () => [
-						...currentBlocks(),
-						block,
-					]);
-					setFocused(currentBlocks().length - 1);
+					const blocks = currentBlocks();
+					const nextTitle = getNextBlockTitle(blocks);
+					const block = createNewBlock(store.activeBuffer, nextTitle, blocks);
+					setStore("buffers", store.activeBuffer, () => [...blocks, block]);
+					setFocused(blocks.length);
 				},
 			},
 			{
@@ -90,10 +88,8 @@ const Blocks = () => {
 				run() {
 					const selected = currentBlocks()[focused()];
 					if (!selected) return;
-					deleteBlock(store.activeBuffer, selected);
-					const blocks = sortBlocksDesc(
-						currentBlocks().filter((block) => block.id !== selected.id),
-					);
+					const blocks = currentBlocks().filter((block) => block.id !== selected.id);
+					deleteBlock(store.activeBuffer, selected, currentBlocks());
 					setStore("buffers", store.activeBuffer, () => blocks);
 					if (focused() > 0) setFocused((p) => p - 1);
 				},

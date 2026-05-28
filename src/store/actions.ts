@@ -1,15 +1,14 @@
 import { randomUUIDv7 } from "bun";
+import { loadConfig } from "@/config";
 import {
-	createBufferDir,
-	deleteBlockFile,
-	deleteBufferDir,
-	readBlockFileByPath,
-	renameBufferDir,
-	walkBufferFiles,
-	writeBlockFile,
-} from "@/store/file";
+	createBufferFile,
+	deleteBufferFile,
+	getBuffers,
+	readBufferFile,
+	renameBufferFile,
+	writeBufferFile,
+} from "@/storage/fs";
 import type { Block } from "@/types";
-import { sortBlocksDesc } from "@/utils";
 import { DEFAULT_BUFFER } from "@/utils/contants";
 
 function createNewBuffer(name: string, allBuffers: Record<string, Block[]>) {
@@ -20,7 +19,7 @@ function createNewBuffer(name: string, allBuffers: Record<string, Block[]>) {
 		return false;
 	}
 
-	const created = createBufferDir(nextName);
+	const created = createBufferFile(nextName);
 	if (!created) {
 		return false;
 	}
@@ -36,7 +35,7 @@ function deleteBuffer(name: string, allBuffers: Record<string, Block[]>) {
 		return false;
 	}
 
-	const deleted = deleteBufferDir(target);
+	const deleted = deleteBufferFile(target);
 	if (!deleted) {
 		return false;
 	}
@@ -65,7 +64,7 @@ function renameBuffer(
 		return false;
 	}
 
-	const renamed = renameBufferDir(current, next);
+	const renamed = renameBufferFile(current, next);
 	if (!renamed) {
 		return false;
 	}
@@ -73,18 +72,27 @@ function renameBuffer(
 	return next;
 }
 
-function createNewBlock(buffer: string, title: string) {
+function createNewBlock(buffer: string, title: string, allBlocks: Block[]) {
 	const block = {
 		id: randomUUIDv7(),
 		title: title,
 		content: "",
 	};
-	writeBlockFile(buffer, block);
+	writeBufferFile(buffer, [...allBlocks, block]);
 	return block;
 }
 
-function writeBlock(buffer: string, block: Block) {
-	writeBlockFile(buffer, block);
+function writeBlock(buffer: string, block: Block, allBlocks: Block[]) {
+	const existingIndex = allBlocks.findIndex((b) => b.id === block.id);
+	const nextBlocks = [...allBlocks];
+
+	if (existingIndex === -1) {
+		nextBlocks.push(block);
+	} else {
+		nextBlocks[existingIndex] = block;
+	}
+
+	writeBufferFile(buffer, nextBlocks);
 	return block;
 }
 
@@ -108,42 +116,46 @@ function renameBlockTitle(
 		throw new Error(`DUPLICATE_TITLE`);
 	}
 
-	deleteBlockFile(buffer, block.title);
 	const updatedBlock: Block = {
 		...block,
 		title: nextTitle,
 	};
-	writeBlockFile(buffer, updatedBlock);
+	const nextBlocks = allBlocks.map((b) =>
+		b.id === updatedBlock.id ? updatedBlock : b,
+	);
+	writeBufferFile(buffer, nextBlocks);
 	return updatedBlock;
 }
 
-function deleteBlock(buffer: string, block: Block) {
-	deleteBlockFile(buffer, block.title);
+function deleteBlock(buffer: string, block: Block, allBlocks: Block[]) {
+	const nextBlocks = allBlocks.filter((b) => b.id !== block.id);
+	writeBufferFile(buffer, nextBlocks);
 }
 
 function loadInitialStore() {
-	const { filesByBuffer } = walkBufferFiles();
+	const config = loadConfig();
+
+	const bufferNames = getBuffers();
 	const buffers: Record<string, Block[]> = {};
 
-	for (const buffer in filesByBuffer) {
-		const filePaths = filesByBuffer[buffer];
-		const blocks: Block[] = [];
-		for (const blockPath of filePaths ?? []) {
-			const block = readBlockFileByPath(blockPath);
-			blocks.push(block);
-		}
-		const sortedBlocks = sortBlocksDesc(blocks);
-		buffers[buffer] = sortedBlocks;
+	for (const bufferName of bufferNames) {
+		buffers[bufferName] = readBufferFile(bufferName);
 	}
 
-	let activeBuffer = DEFAULT_BUFFER;
-	if (Object.keys(buffers).length) {
-		activeBuffer = Object.keys(buffers)[0] as string;
-	} else {
+	let activeBuffer: string;
+	if (!Object.keys(buffers).length) {
+		// No buffers on disk — start fresh with the default
 		buffers[DEFAULT_BUFFER] = [];
+		activeBuffer = DEFAULT_BUFFER;
+	} else if (buffers[config.lastActiveBuffer] !== undefined) {
+		// Restore the previously active buffer
+		activeBuffer = config.lastActiveBuffer;
+	} else {
+		// Saved buffer no longer exists — fall back to first available
+		activeBuffer = Object.keys(buffers)[0] as string;
 	}
 
-	return { buffers, activeBuffer };
+	return { buffers, activeBuffer, config };
 }
 
 export {

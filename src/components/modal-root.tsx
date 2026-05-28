@@ -8,7 +8,6 @@ import {
 	renameBuffer,
 } from "@/store/actions";
 import { setStore, store } from "@/store/client";
-import { sortBlocksDesc } from "@/utils";
 
 const ModalRoot = () => {
 	function renameAction(value: string) {
@@ -25,13 +24,9 @@ const ModalRoot = () => {
 				value,
 			);
 			if (newBlock) {
-				const sorted = sortBlocksDesc([
-					...store.buffers[store.activeBuffer]!.filter(
-						(block) => block.id !== currentBlock!.id,
-					),
-					newBlock,
-				]);
-				setStore("buffers", store.activeBuffer, () => sorted);
+				setStore("buffers", store.activeBuffer, (blocks) =>
+					(blocks ?? []).map((b) => (b.id === currentBlock.id ? newBlock : b)),
+				);
 			}
 			setStore("modal", {
 				type: null,
@@ -59,6 +54,12 @@ const ModalRoot = () => {
 				};
 			});
 			setStore("activeBuffer", newBuffer);
+			setStore("config", (c) => {
+				return {
+					...c,
+					lastActiveBuffer: newBuffer,
+				};
+			});
 		}
 		setStore("modal", { type: null, payload: undefined, errorMsg: undefined });
 	}
@@ -83,6 +84,12 @@ const ModalRoot = () => {
 			});
 			if (store.activeBuffer === currentName) {
 				setStore("activeBuffer", nextName);
+				setStore("config", (c) => {
+					return {
+						...c,
+						lastActiveBuffer: nextName,
+					};
+				});
 			}
 		}
 

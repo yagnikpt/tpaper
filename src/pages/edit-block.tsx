@@ -4,7 +4,6 @@ import { createEffect, createSignal, onCleanup } from "solid-js";
 import { writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Buffer } from "@/types";
-import { sortBlocksDesc } from "@/utils";
 
 const EditBlock = () => {
 	const cBlock = ((store.buffers[store.activeBuffer] ?? []) as Buffer).find(
@@ -51,14 +50,16 @@ const EditBlock = () => {
 	});
 
 	function write() {
-		const block = writeBlock(store.activeBuffer, currentBlock()!);
-		const sorted = sortBlocksDesc([
-			...(store.buffers[store.activeBuffer]?.filter(
-				(b) => b.id !== block.id,
-			) as Buffer),
-			block,
-		]);
-		setStore("buffers", store.activeBuffer, () => sorted);
+		const currentBlocks = (store.buffers[store.activeBuffer] ?? []) as Buffer;
+		const block = writeBlock(store.activeBuffer, currentBlock()!, currentBlocks);
+		setStore("buffers", store.activeBuffer, (blocks) => {
+			const prev = (blocks ?? []) as Buffer;
+			const idx = prev.findIndex((b) => b.id === block.id);
+			if (idx === -1) return [...prev, block];
+			const next = [...prev];
+			next[idx] = block;
+			return next;
+		});
 	}
 
 	onCleanup(write);

@@ -13,17 +13,21 @@ const BASE_STORE: Store = {
 	modal: {
 		type: null,
 	},
+	config: {
+		lastActiveBuffer: "main",
+	},
 };
 
 const [store, setStore] = createStore<Store>(BASE_STORE);
 
 function initializeStore() {
-	const { buffers, activeBuffer } = loadInitialStore();
+	const { buffers, activeBuffer, config } = loadInitialStore();
 	setStore(
 		reconcile({
 			...BASE_STORE,
 			activeBuffer,
 			buffers,
+			config,
 		}),
 	);
 }

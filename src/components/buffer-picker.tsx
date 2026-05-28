@@ -45,7 +45,14 @@ const BufferPicker = () => {
 								setStore("activeBuffer", "main");
 								return { main: [] };
 							} else {
-								setStore("activeBuffer", Object.keys(store.buffers)[0]!);
+								const nextBuffer = Object.keys(b)[0]!;
+								setStore("activeBuffer", nextBuffer);
+								setStore("config", (c) => {
+									return {
+										...c,
+										lastActiveBuffer: nextBuffer,
+									};
+								});
 								return b;
 							}
 						});
@@ -70,6 +77,12 @@ const BufferPicker = () => {
 		// might need queueMicrotask
 		setStore("activeBuffer", value);
 		setStore("modal", { type: null, payload: undefined, errorMsg: undefined });
+		setStore("config", (c) => {
+			return {
+				...c,
+				lastActiveBuffer: value,
+			};
+		});
 		setHighlighted(0);
 	}
 
