@@ -41,11 +41,20 @@ const BufferPicker = () => {
 					if (deletedBuffer) {
 						setStore("buffers", (b) => {
 							delete b[deletedBuffer];
-							return b;
+							if (Object.keys(b).length === 0) {
+								setStore("activeBuffer", "main");
+								return { main: [] };
+							} else {
+								setStore("activeBuffer", Object.keys(store.buffers)[0]!);
+								return b;
+							}
 						});
-						setStore("activeBuffer", Object.keys(store.buffers)[0]!);
 					}
-					setStore("modal", { type: null, payload: undefined });
+					setStore("modal", {
+						type: null,
+						payload: undefined,
+						errorMsg: undefined,
+					});
 				},
 			},
 		],
@@ -60,7 +69,7 @@ const BufferPicker = () => {
 		setStore("screen", "blocks");
 		// might need queueMicrotask
 		setStore("activeBuffer", value);
-		setStore("modal", { type: null, payload: undefined });
+		setStore("modal", { type: null, payload: undefined, errorMsg: undefined });
 		setHighlighted(0);
 	}
 

@@ -17,22 +17,36 @@ const ModalRoot = () => {
 		)[0];
 		if (!currentBlock) return;
 
-		const newBlock = renameBlockTitle(
-			store.activeBuffer,
-			store.buffers[store.activeBuffer]!,
-			currentBlock!,
-			value,
-		);
-		if (newBlock) {
-			const sorted = sortBlocksDesc([
-				...store.buffers[store.activeBuffer]!.filter(
-					(block) => block.id !== currentBlock!.id,
-				),
-				newBlock,
-			]);
-			setStore("buffers", store.activeBuffer, () => sorted);
+		try {
+			const newBlock = renameBlockTitle(
+				store.activeBuffer,
+				store.buffers[store.activeBuffer]!,
+				currentBlock!,
+				value,
+			);
+			if (newBlock) {
+				const sorted = sortBlocksDesc([
+					...store.buffers[store.activeBuffer]!.filter(
+						(block) => block.id !== currentBlock!.id,
+					),
+					newBlock,
+				]);
+				setStore("buffers", store.activeBuffer, () => sorted);
+			}
+			setStore("modal", {
+				type: null,
+				payload: undefined,
+				errorMsg: undefined,
+			});
+		} catch (e) {
+			if (e instanceof Error && e.message === "DUPLICATE_TITLE")
+				setStore("modal", (m) => {
+					return {
+						...m,
+						errorMsg: `Block with title "${value}" exists!`,
+					};
+				});
 		}
-		setStore("modal", { type: null, payload: undefined });
 	}
 
 	function newBuffer(newVal: string) {
@@ -46,13 +60,17 @@ const ModalRoot = () => {
 			});
 			setStore("activeBuffer", newBuffer);
 		}
-		setStore("modal", { type: null, payload: undefined });
+		setStore("modal", { type: null, payload: undefined, errorMsg: undefined });
 	}
 
 	function renameBufferAction(newVal: string) {
 		const currentName = store.modal.payload?.bufferName;
 		if (!currentName) {
-			setStore("modal", { type: null, payload: undefined });
+			setStore("modal", {
+				type: null,
+				payload: undefined,
+				errorMsg: undefined,
+			});
 			return;
 		}
 
@@ -68,7 +86,7 @@ const ModalRoot = () => {
 			}
 		}
 
-		setStore("modal", { type: null, payload: undefined });
+		setStore("modal", { type: null, payload: undefined, errorMsg: undefined });
 	}
 
 	return (

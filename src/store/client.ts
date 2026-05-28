@@ -1,17 +1,31 @@
-import { createStore } from "solid-js/store";
+import { createStore, reconcile } from "solid-js/store";
 import { loadInitialStore } from "@/store/actions";
 import type { Store } from "@/types";
+import { DEFAULT_BUFFER } from "@/utils/contants";
 
-const { buffers, activeBuffer } = loadInitialStore();
-
-const [store, setStore] = createStore<Store>({
+const BASE_STORE: Store = {
 	screen: "blocks",
 	activeBlock: null,
-	activeBuffer,
-	buffers,
+	activeBuffer: DEFAULT_BUFFER,
+	buffers: {
+		[DEFAULT_BUFFER]: [],
+	},
 	modal: {
 		type: null,
 	},
-});
+};
 
-export { setStore, store };
+const [store, setStore] = createStore<Store>(BASE_STORE);
+
+function initializeStore() {
+	const { buffers, activeBuffer } = loadInitialStore();
+	setStore(
+		reconcile({
+			...BASE_STORE,
+			activeBuffer,
+			buffers,
+		}),
+	);
+}
+
+export { initializeStore, setStore, store };

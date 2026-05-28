@@ -105,7 +105,7 @@ function renameBlockTitle(
 		(b) => b.id !== block.id && b.title === nextTitle,
 	);
 	if (duplicate) {
-		return false;
+		throw new Error(`DUPLICATE_TITLE`);
 	}
 
 	deleteBlockFile(buffer, block.title);

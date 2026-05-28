@@ -41,14 +41,13 @@ const Blocks = () => {
 			{
 				name: "create-block",
 				run() {
-					const block = createNewBlock(
-						store.activeBuffer,
-						`New Block ${currentBlocks().length + 1}`,
-					);
+					const nextTitle = getNextBlockTitle(currentBlocks());
+					const block = createNewBlock(store.activeBuffer, nextTitle);
 					setStore("buffers", store.activeBuffer, () => [
 						...currentBlocks(),
 						block,
 					]);
+					setFocused(currentBlocks().length - 1);
 				},
 			},
 			{
@@ -96,6 +95,7 @@ const Blocks = () => {
 						currentBlocks().filter((block) => block.id !== selected.id),
 					);
 					setStore("buffers", store.activeBuffer, () => blocks);
+					if (focused() > 0) setFocused((p) => p - 1);
 				},
 			},
 		],
@@ -126,7 +126,12 @@ const Blocks = () => {
 					<box
 						id={`block-${item.id}`}
 						border
-						opacity={focused() === index() ? 1 : 0.7}
+						backgroundColor={
+							focused() === index() && store.modal.type === null
+								? "#282828"
+								: "transparent"
+						}
+						// opacity={focused() === index() ? 1 : 0.7}
 						borderColor={focused() === index() ? "#CCC" : "#888"}
 						title={item.title}
 					>
@@ -143,3 +148,21 @@ const Blocks = () => {
 };
 
 export default Blocks;
+
+function getNextBlockTitle(blocks: Block[]) {
+	const usedTitles = new Set(blocks.map((block) => block.title));
+	const maxAutoTitleNumber = blocks.reduce((max, block) => {
+		const match = block.title.match(/^New Block (\d+)$/);
+		if (!match) return max;
+		return Math.max(max, Number(match[1]));
+	}, 0);
+
+	let nextNumber = maxAutoTitleNumber + 1;
+	let candidate = `New Block ${nextNumber}`;
+	while (usedTitles.has(candidate)) {
+		nextNumber += 1;
+		candidate = `New Block ${nextNumber}`;
+	}
+
+	return candidate;
+}

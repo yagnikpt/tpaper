@@ -26,8 +26,20 @@ const EditBlock = () => {
 					setStore("activeBlock", null);
 				},
 			},
+			{
+				name: "edit-title",
+				run() {
+					setStore("modal", {
+						type: "edit-block-title",
+						payload: { block: currentBlock() },
+					});
+				},
+			},
 		],
-		bindings: [{ key: "escape", cmd: "back-to-blocks" }],
+		bindings: [
+			{ key: "escape", cmd: "back-to-blocks" },
+			{ key: "ctrl+t", cmd: "edit-title" },
+		],
 	}));
 
 	createEffect(() => {

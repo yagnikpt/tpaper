@@ -1,6 +1,6 @@
 import { useKeyboard } from "@opentui/solid";
-import type { JSX } from "solid-js";
-import { setStore } from "@/store/client";
+import { type JSX, Show } from "solid-js";
+import { setStore, store } from "@/store/client";
 
 interface ModalProps {
 	title: string;
@@ -19,7 +19,11 @@ const Modal = ({
 }: ModalProps) => {
 	useKeyboard((key) => {
 		if (key.name === "escape") {
-			setStore("modal", { type: null, payload: undefined });
+			setStore("modal", {
+				type: null,
+				payload: undefined,
+				errorMsg: undefined,
+			});
 		}
 	});
 
@@ -54,8 +58,14 @@ const Modal = ({
 				backgroundColor="#282828"
 				border
 				marginBottom={3}
+				justifyContent="space-between"
 			>
 				{children}
+				<Show when={store.modal.errorMsg}>
+					<text alignSelf="flex-end" fg="#e96962">
+						{store.modal.errorMsg}
+					</text>
+				</Show>
 			</box>
 		</box>
 	);

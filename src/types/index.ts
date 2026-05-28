@@ -13,6 +13,10 @@ interface Block {
 
 type Buffer = Block[];
 
+interface Config {
+	lastActiveBuffer: string;
+}
+
 interface Store {
 	screen: "blocks" | "edit";
 	activeBlock: string | null;
@@ -24,7 +28,9 @@ interface Store {
 			block?: Block;
 			bufferName?: string;
 		};
+		errorMsg?: string;
 	};
+	config: Config;
 }
 
-export type { Block, Buffer, Store };
+export type { Block, Buffer, Config, Store };
