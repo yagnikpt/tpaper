@@ -1,6 +1,12 @@
-import { RGBA, type ScrollBoxRenderable, SyntaxStyle } from "@opentui/core";
+import {
+	RGBA,
+	type ScrollBoxRenderable,
+	SyntaxStyle,
+	TextAttributes,
+} from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
-import { createEffect, createSignal, For } from "solid-js";
+import { useRenderer } from "@opentui/solid";
+import { type Accessor, createEffect, For, type Setter } from "solid-js";
 import useTheme from "@/hooks/useTheme";
 import { createNewBlock, deleteBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
@@ -83,17 +89,26 @@ const lightSyntaxStyle = SyntaxStyle.fromStyles({
 	"markup.table": { fg: RGBA.fromHex("#4A453D") },
 });
 
-const Blocks = () => {
-	const [focused, setFocused] = createSignal(0);
+interface Props {
+	focused: Accessor<number>;
+	setFocused: Setter<number>;
+}
+
+const Blocks = ({ focused, setFocused }: Props) => {
 	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
 	let scrollBoxRef: ScrollBoxRenderable | undefined;
 
 	const { theme, mode } = useTheme();
+	const renderer = useRenderer();
 
 	createEffect(() => {
 		if (scrollBoxRef) {
 			const currentFocusedBlock = currentBlocks()[focused()];
-			scrollBoxRef.scrollChildIntoView(`block-${currentFocusedBlock?.id}`);
+			setTimeout(
+				() =>
+					scrollBoxRef.scrollChildIntoView(`block-${currentFocusedBlock?.id}`),
+				0,
+			);
 		}
 	});
 
@@ -105,9 +120,14 @@ const Blocks = () => {
 				run() {
 					const blocks = currentBlocks();
 					const nextTitle = getNextBlockTitle(blocks);
-					const block = createNewBlock(store.activeBuffer, nextTitle, blocks);
-					setStore("buffers", store.activeBuffer, () => [...blocks, block]);
-					setFocused(blocks.length);
+					const newBlocks = createNewBlock(
+						store.activeBuffer,
+						nextTitle,
+						blocks,
+						focused() === 0 ? 0 : focused() + 1,
+					);
+					setStore("buffers", store.activeBuffer, newBlocks);
+					setFocused((p) => (p === 0 ? 0 : p + 1));
 				},
 			},
 			{
@@ -119,6 +139,14 @@ const Blocks = () => {
 						type: "edit-block-title",
 						payload: { block: selected },
 					});
+				},
+			},
+			{
+				name: "copy-block",
+				run() {
+					const selected = currentBlocks()[focused()];
+					if (!selected) return;
+					renderer.copyToClipboardOSC52(selected.content);
 				},
 			},
 			{
@@ -158,15 +186,32 @@ const Blocks = () => {
 					if (focused() > 0) setFocused((p) => p - 1);
 				},
 			},
+			{
+				name: "goto-end",
+				run() {
+					setFocused(currentBlocks().length - 1);
+				},
+			},
+			{
+				name: "goto-start",
+				run() {
+					setFocused(0);
+				},
+			},
 		],
 		bindings: [
 			{ key: "ctrl+b", cmd: "create-block" },
 			{ key: "ctrl+d", cmd: "delete-block" },
 			{ key: "ctrl+t", cmd: "edit-title" },
+			{ key: "ctrl+y", cmd: "copy-block" },
 			{ key: "up", cmd: "focus-up" },
+			{ key: "k", cmd: "focus-up" },
 			{ key: "down", cmd: "focus-down" },
+			{ key: "j", cmd: "focus-down" },
 			{ key: "return", cmd: "edit-block" },
 			{ key: "i", cmd: "edit-block" },
+			{ key: "ctrl+e", cmd: "goto-end" },
+			{ key: "ctrl+a", cmd: "goto-start" },
 		],
 	}));
 
@@ -178,7 +223,9 @@ const Blocks = () => {
 		>
 			{currentBlocks().length === 0 && (
 				<box flexGrow={1} justifyContent="center" alignItems="center">
-					<text>No blocks! Create one with ctrl+b</text>
+					<text fg={theme().fg} attributes={TextAttributes.DIM}>
+						No blocks! Create one with ctrl+b
+					</text>
 				</box>
 			)}
 			<For each={currentBlocks()}>
@@ -188,11 +235,11 @@ const Blocks = () => {
 						border
 						backgroundColor={
 							focused() === index() && store.modal.type === null
-								? theme().surface
+								? theme().surfaceVariant
 								: "transparent"
 						}
-						// opacity={focused() === index() ? 1 : 0.7}
 						borderColor={focused() === index() ? theme().border : "#888"}
+						marginBottom={index() === currentBlocks().length - 1 ? 1 : 0}
 						title={item.title}
 					>
 						<markdown

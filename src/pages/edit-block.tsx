@@ -1,17 +1,17 @@
 import type { TextareaRenderable } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
-import { createEffect, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import useTheme from "@/hooks/useTheme";
 import { writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Buffer } from "@/types";
 
 const EditBlock = () => {
-	const cBlock = ((store.buffers[store.activeBuffer] ?? []) as Buffer).find(
-		(b) => b.id === store.activeBlock,
+	const cBlock = createMemo(() =>
+		store.buffers[store.activeBuffer]!.find((b) => b.id === store.activeBlock),
 	);
 
-	const [currentBlock, setCurrentBlock] = createSignal(cBlock);
+	const [currentBlock, setCurrentBlock] = createSignal(cBlock());
 	if (!currentBlock()) return null;
 	const [input, setInput] = createSignal(currentBlock()!.content ?? "");
 	let textAreaRef: TextareaRenderable | undefined;
@@ -31,6 +31,7 @@ const EditBlock = () => {
 			{
 				name: "edit-title",
 				run() {
+					write();
 					setStore("modal", {
 						type: "edit-block-title",
 						payload: { block: currentBlock() },
@@ -44,6 +45,10 @@ const EditBlock = () => {
 			{ key: "ctrl+t", cmd: "edit-title" },
 		],
 	}));
+
+	createEffect(() => {
+		setCurrentBlock(cBlock());
+	});
 
 	createEffect(() => {
 		setCurrentBlock((b) => ({

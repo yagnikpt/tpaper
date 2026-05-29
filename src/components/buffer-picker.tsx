@@ -91,6 +91,8 @@ const BufferPicker = () => {
 	return (
 		<box>
 			<select
+				textColor={theme().border}
+				focusedTextColor={theme().border}
 				selectedTextColor={theme().accent}
 				selectedBackgroundColor={theme().surfaceVariant}
 				backgroundColor={theme().surface}

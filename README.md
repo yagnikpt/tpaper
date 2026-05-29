@@ -4,6 +4,9 @@ A terminal-based note-taking app built around the idea of **buffers** and **bloc
 
 Yes its a [heynote](https://github.com/heyman/heynote) rip-off for the terminal with less features.
 
+
+![Demo GIF](assets/demo.gif)
+
 ## Concepts
 
 - **Buffer** — a named collection of blocks, stored as a Markdown file on disk. Roughly analogous to a notebook or a tab.

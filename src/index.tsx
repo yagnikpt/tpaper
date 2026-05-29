@@ -3,7 +3,7 @@ import { TextAttributes } from "@opentui/core";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { render, useRenderer } from "@opentui/solid";
-import { createEffect, Match, Switch } from "solid-js";
+import { createEffect, createSignal, Match, Switch } from "solid-js";
 import { handleCLIArgs } from "@/cli";
 import ModalRoot from "@/components/modal-root";
 import { saveConfig } from "@/config";
@@ -30,26 +30,31 @@ const App = () => {
 	});
 
 	const { theme } = useTheme();
+	const [focused, setFocused] = createSignal(0);
+
+	createEffect(() => {
+		if (store.activeBuffer) setFocused(0);
+	});
 
 	return (
 		<box flexGrow={1}>
 			<Switch>
 				<Match when={store.screen === "blocks"}>
-					<Blocks />
+					<Blocks focused={focused} setFocused={setFocused} />
 				</Match>
 				<Match when={store.screen === "edit"}>
 					<EditBlock />
 				</Match>
 			</Switch>
-			<box backgroundColor={theme().surface}>
+			<box flexShrink={0} zIndex={10} backgroundColor={theme().surface}>
 				<Switch>
 					<Match when={store.screen === "blocks"}>
-						<text fg={theme().fg} attributes={TextAttributes.DIM}>
-							^b: add | ^d: delete | ^p: buffer picker | ^t: rename
+						<text maxHeight={1} fg={theme().fg} attributes={TextAttributes.DIM}>
+							^b: add | ^d: delete | ^t: rename | ^y: copy | ^h: keybinds
 						</text>
 					</Match>
 					<Match when={store.screen === "edit"}>
-						<text attributes={TextAttributes.DIM}>
+						<text maxHeight={1} fg={theme().fg} attributes={TextAttributes.DIM}>
 							esc | ^s: save & return | ^t: rename title
 						</text>
 					</Match>
@@ -71,8 +76,17 @@ const GlobalBindings = () => {
 					renderer.console.toggle();
 				},
 			},
+			{
+				name: "open-keybinds",
+				run() {
+					setStore("modal", { type: "keybinds" });
+				},
+			},
 		],
-		bindings: [{ key: "ctrl+l", cmd: "toggle-console" }],
+		bindings: [
+			{ key: "ctrl+l", cmd: "toggle-console" },
+			{ key: "ctrl+h", cmd: "open-keybinds" },
+		],
 	}));
 
 	return null;

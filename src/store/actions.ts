@@ -72,14 +72,25 @@ function renameBuffer(
 	return next;
 }
 
-function createNewBlock(buffer: string, title: string, allBlocks: Block[]) {
+function createNewBlock(
+	buffer: string,
+	title: string,
+	allBlocks: Block[],
+	index?: number,
+) {
 	const block = {
 		id: randomUUIDv7(),
 		title: title,
 		content: "",
 	};
-	writeBufferFile(buffer, [...allBlocks, block]);
-	return block;
+	let nextBlocks = [...allBlocks];
+	if (index) {
+		nextBlocks.splice(index, 0, block);
+	} else {
+		nextBlocks = [...allBlocks, block];
+	}
+	writeBufferFile(buffer, nextBlocks);
+	return nextBlocks;
 }
 
 function writeBlock(buffer: string, block: Block, allBlocks: Block[]) {

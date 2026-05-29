@@ -1,6 +1,7 @@
 import { Match, Switch } from "solid-js";
 import BufferPicker from "@/components/buffer-picker";
 import Input from "@/components/input";
+import Keybinds from "@/components/keybinds";
 import Modal from "@/components/modal";
 import {
 	createNewBuffer,
@@ -25,7 +26,7 @@ const ModalRoot = () => {
 			);
 			if (newBlock) {
 				setStore("buffers", store.activeBuffer, (blocks) =>
-					(blocks ?? []).map((b) => (b.id === currentBlock.id ? newBlock : b)),
+					blocks.map((b) => (b.id === currentBlock.id ? newBlock : b)),
 				);
 			}
 			setStore("modal", {
@@ -126,6 +127,11 @@ const ModalRoot = () => {
 						initialValue={store.modal.payload?.bufferName}
 						onSubmit={renameBufferAction}
 					/>
+				</Modal>
+			</Match>
+			<Match when={store.modal.type === "keybinds"}>
+				<Modal height={10} title="Keybinds">
+					<Keybinds />
 				</Modal>
 			</Match>
 		</Switch>

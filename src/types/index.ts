@@ -3,6 +3,7 @@ type ModalType =
 	| "rename-buffer"
 	| "edit-block-title"
 	| "buffer-picker"
+	| "keybinds"
 	| null;
 
 interface Block {
