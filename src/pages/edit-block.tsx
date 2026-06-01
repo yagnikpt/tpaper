@@ -38,11 +38,18 @@ const EditBlock = () => {
 					});
 				},
 			},
+			{
+				name: "view-block",
+				run() {
+					setStore("screen", "view");
+				},
+			},
 		],
 		bindings: [
 			{ key: "escape", cmd: "save-and-return" },
 			{ key: "ctrl+s", cmd: "save-and-return" },
 			{ key: "ctrl+t", cmd: "edit-title" },
+			{ key: "ctrl+v", cmd: "view-block" },
 		],
 	}));
 

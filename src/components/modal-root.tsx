@@ -130,7 +130,7 @@ const ModalRoot = () => {
 				</Modal>
 			</Match>
 			<Match when={store.modal.type === "keybinds"}>
-				<Modal height={10} title="Keybinds">
+				<Modal height={11} title="Keybinds">
 					<Keybinds />
 				</Modal>
 			</Match>

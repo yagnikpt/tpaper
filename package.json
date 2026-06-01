@@ -15,11 +15,11 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
-		"@opentui/core": "^0.2.16",
-		"@opentui/keymap": "^0.2.16",
-		"@opentui/solid": "^0.2.16",
+		"@opentui/core": "^0.3.1",
+		"@opentui/keymap": "^0.3.1",
+		"@opentui/solid": "^0.3.1",
 		"env-paths": "^4.0.0",
-		"js-yaml": "^4.1.1",
+		"js-yaml": "^4.2.0",
 		"solid-js": "^1.9.13"
 	}
 }

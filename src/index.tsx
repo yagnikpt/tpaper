@@ -10,6 +10,7 @@ import { saveConfig } from "@/config";
 import useTheme from "@/hooks/useTheme";
 import Blocks from "@/pages/blocks";
 import EditBlock from "@/pages/edit-block";
+import ViewBlock from "@/pages/view-block";
 import { initializeStore, setStore, store } from "@/store/client";
 
 const App = () => {
@@ -45,6 +46,9 @@ const App = () => {
 				<Match when={store.screen === "edit"}>
 					<EditBlock />
 				</Match>
+				<Match when={store.screen === "view"}>
+					<ViewBlock />
+				</Match>
 			</Switch>
 			<box flexShrink={0} zIndex={10} backgroundColor={theme().surface}>
 				<Switch>
@@ -55,7 +59,12 @@ const App = () => {
 					</Match>
 					<Match when={store.screen === "edit"}>
 						<text maxHeight={1} fg={theme().fg} attributes={TextAttributes.DIM}>
-							esc | ^s: save & return | ^t: rename title
+							esc | ^s: save & return | ^v: view mode
+						</text>
+					</Match>
+					<Match when={store.screen === "view"}>
+						<text maxHeight={1} fg={theme().fg} attributes={TextAttributes.DIM}>
+							esc: return | i: edit
 						</text>
 					</Match>
 				</Switch>

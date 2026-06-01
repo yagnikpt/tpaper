@@ -19,7 +19,7 @@ interface Config {
 }
 
 interface Store {
-	screen: "blocks" | "edit";
+	screen: "blocks" | "edit" | "view";
 	activeBlock: string | null;
 	activeBuffer: string;
 	buffers: Record<string, Buffer>;
