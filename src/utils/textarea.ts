@@ -55,4 +55,39 @@ function getLineOffset(line: string, firstChar: string): number {
 	return leadingSpaces > 0 ? Math.floor(leadingSpaces / 2) : 0;
 }
 
-export { checkForListFormatting, getLineFromCursorRowIndex };
+function indentListLine(line: string): string | false {
+	const trimmed = line.trim();
+	if (!trimmed) return false;
+
+	// 1. Regex to match either a pure checkbox OR a markdown list item
+	const validListRegex = /^(\[([ xX])\]|([+\-*]|\d+\.))\s+/;
+
+	if (!validListRegex.test(trimmed)) {
+		return false;
+	}
+
+	return `  ${line}\n`;
+}
+
+function unindentListLine(line: string): string | false {
+	const trimmed = line.trim();
+	if (!trimmed) return false;
+
+	const validListRegex = /^(\[([ xX])\]|([+\-*]|\d+\.))\s+/;
+	if (!validListRegex.test(trimmed)) {
+		return false;
+	}
+
+	if (line.startsWith("  ")) {
+		return line.substring(2);
+	}
+
+	return false;
+}
+
+export {
+	checkForListFormatting,
+	getLineFromCursorRowIndex,
+	indentListLine,
+	unindentListLine,
+};

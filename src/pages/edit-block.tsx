@@ -14,6 +14,7 @@ import type { Buffer } from "@/types";
 import {
 	checkForListFormatting,
 	getLineFromCursorRowIndex,
+	indentListLine,
 } from "@/utils/textarea";
 
 const EditBlock = () => {
@@ -57,21 +58,37 @@ const EditBlock = () => {
 			{
 				name: "tab-it",
 				run() {
+					const cursor = textAreaRef!.logicalCursor;
+					const activeLine = getLineFromCursorRowIndex(
+						input(),
+						textAreaRef!.logicalCursor.row,
+					);
+					if (!activeLine) {
+						textAreaRef!.insertChar("  ");
+						return;
+					}
+					const indentLine = indentListLine(activeLine);
+					if (indentLine) {
+						textAreaRef!.deleteLine();
+						textAreaRef!.insertText(indentLine);
+						textAreaRef!.setCursor(cursor.row, cursor.col + 2);
+						return;
+					}
 					textAreaRef!.insertChar("  ");
 				},
 			},
 			{
 				name: "newline-it",
 				run() {
-					const lastLine = getLineFromCursorRowIndex(
+					const activeLine = getLineFromCursorRowIndex(
 						input(),
 						textAreaRef!.logicalCursor.row,
 					);
-					if (!lastLine) {
+					if (!activeLine) {
 						textAreaRef!.insertChar("\n");
 						return;
 					}
-					const token = checkForListFormatting(lastLine);
+					const token = checkForListFormatting(activeLine);
 					if (token) {
 						textAreaRef!.insertChar("\n");
 						textAreaRef!.insertText(
