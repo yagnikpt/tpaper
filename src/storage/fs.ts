@@ -157,14 +157,22 @@ function getBuffers() {
 		return fs
 			.readdirSync(paths.data, { withFileTypes: true })
 			.filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-			.map((entry) => entry.name.slice(0, -3))
-			.sort((a, b) => a.localeCompare(b));
+			.map((entry) => {
+				const bufferPath = path.join(paths.data, entry.name);
+				const stats = fs.statSync(bufferPath);
+				return {
+					name: entry.name.slice(0, -3),
+					mtime: stats.mtime.getTime(),
+				};
+			})
+			.sort((a, b) => b.mtime - a.mtime)
+			.map((entry) => entry.name);
 	} catch {
 		return [] as string[];
 	}
 }
 
-function getBufferFiles(buffer: string) {
+function getBufferFile(buffer: string) {
 	const bufferPath = getBufferFilePath(buffer);
 	if (!fs.existsSync(bufferPath)) {
 		return [] as string[];
@@ -175,7 +183,7 @@ function getBufferFiles(buffer: string) {
 function walkBufferFiles() {
 	const buffers = getBuffers();
 	const filesByBuffer = Object.fromEntries(
-		buffers.map((buffer) => [buffer, getBufferFiles(buffer)]),
+		buffers.map((buffer) => [buffer, getBufferFile(buffer)]),
 	) as Record<string, string[]>;
 
 	return { buffers, filesByBuffer };
@@ -186,8 +194,8 @@ export {
 	DATA_DIR,
 	deleteBufferFile,
 	ensureAppDir,
+	getBufferFile,
 	getBufferFilePath,
-	getBufferFiles,
 	getBuffers,
 	readBufferFile,
 	renameBufferFile,
