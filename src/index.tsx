@@ -1,5 +1,5 @@
 import "@opentui/solid/preload";
-import { TextAttributes } from "@opentui/core";
+import { TextAttributes, type ThemeMode } from "@opentui/core";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { render, useRenderer } from "@opentui/solid";
@@ -104,6 +104,12 @@ const GlobalBindings = () => {
 const Root = () => {
 	const renderer = useRenderer();
 	const keymap = createDefaultOpenTuiKeymap(renderer);
+
+	const { setMode } = useTheme();
+
+	renderer.on("theme_mode", (nextMode: ThemeMode) => {
+		setMode(nextMode);
+	});
 
 	return (
 		<KeymapProvider keymap={keymap}>

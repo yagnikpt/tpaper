@@ -14,7 +14,7 @@ interface Props {
 	setFocused: Setter<number>;
 }
 
-const Blocks = ({ focused, setFocused }: Props) => {
+const Blocks = (props: Props) => {
 	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
 	let scrollBoxRef: ScrollBoxRenderable | undefined;
 
@@ -23,7 +23,7 @@ const Blocks = ({ focused, setFocused }: Props) => {
 
 	createEffect(() => {
 		if (scrollBoxRef) {
-			const currentFocusedBlock = currentBlocks()[focused()];
+			const currentFocusedBlock = currentBlocks()[props.focused()];
 			setTimeout(
 				() =>
 					scrollBoxRef.scrollChildIntoView(`block-${currentFocusedBlock?.id}`),
@@ -44,16 +44,16 @@ const Blocks = ({ focused, setFocused }: Props) => {
 						store.activeBuffer,
 						nextTitle,
 						blocks,
-						focused() === 0 ? 0 : focused() + 1,
+						props.focused() === 0 ? 0 : props.focused() + 1,
 					);
 					setStore("buffers", store.activeBuffer, newBlocks);
-					setFocused((p) => (p === 0 ? 0 : p + 1));
+					props.setFocused((p) => (p === 0 ? 0 : p + 1));
 				},
 			},
 			{
 				name: "edit-title",
 				run() {
-					const selected = currentBlocks()[focused()];
+					const selected = currentBlocks()[props.focused()];
 					if (!selected) return;
 					setStore("modal", {
 						type: "edit-block-title",
@@ -64,7 +64,7 @@ const Blocks = ({ focused, setFocused }: Props) => {
 			{
 				name: "copy-block",
 				run() {
-					const selected = currentBlocks()[focused()];
+					const selected = currentBlocks()[props.focused()];
 					if (!selected) return;
 					renderer.copyToClipboardOSC52(selected.content);
 				},
@@ -72,19 +72,23 @@ const Blocks = ({ focused, setFocused }: Props) => {
 			{
 				name: "focus-up",
 				run() {
-					setFocused((prev) => clamp(prev - 1, 0, currentBlocks().length - 1));
+					props.setFocused((prev) =>
+						clamp(prev - 1, 0, currentBlocks().length - 1),
+					);
 				},
 			},
 			{
 				name: "focus-down",
 				run() {
-					setFocused((prev) => clamp(prev + 1, 0, currentBlocks().length - 1));
+					props.setFocused((prev) =>
+						clamp(prev + 1, 0, currentBlocks().length - 1),
+					);
 				},
 			},
 			{
 				name: "view-block",
 				run() {
-					const selected = currentBlocks()[focused()];
+					const selected = currentBlocks()[props.focused()];
 					if (!selected) return;
 					const selectedId = (selected as Block).id;
 					setStore("activeBlock", selectedId);
@@ -94,7 +98,7 @@ const Blocks = ({ focused, setFocused }: Props) => {
 			{
 				name: "edit-block",
 				run() {
-					const selected = currentBlocks()[focused()];
+					const selected = currentBlocks()[props.focused()];
 					if (!selected) return;
 					const selectedId = (selected as Block).id;
 					queueMicrotask(() => {
@@ -106,26 +110,26 @@ const Blocks = ({ focused, setFocused }: Props) => {
 			{
 				name: "delete-block",
 				run() {
-					const selected = currentBlocks()[focused()];
+					const selected = currentBlocks()[props.focused()];
 					if (!selected) return;
 					const blocks = currentBlocks().filter(
 						(block) => block.id !== selected.id,
 					);
 					deleteBlock(store.activeBuffer, selected, currentBlocks());
 					setStore("buffers", store.activeBuffer, () => blocks);
-					if (focused() > 0) setFocused((p) => p - 1);
+					if (props.focused() > 0) props.setFocused((p) => p - 1);
 				},
 			},
 			{
 				name: "goto-end",
 				run() {
-					setFocused(currentBlocks().length - 1);
+					props.setFocused(currentBlocks().length - 1);
 				},
 			},
 			{
 				name: "goto-start",
 				run() {
-					setFocused(0);
+					props.setFocused(0);
 				},
 			},
 		],
@@ -165,11 +169,11 @@ const Blocks = ({ focused, setFocused }: Props) => {
 						id={`block-${item.id}`}
 						border
 						backgroundColor={
-							focused() === index() && store.modal.type === null
+							props.focused() === index() && store.modal.type === null
 								? theme().surfaceVariant
 								: "transparent"
 						}
-						borderColor={focused() === index() ? theme().border : "#888"}
+						borderColor={props.focused() === index() ? theme().border : "#888"}
 						marginBottom={index() === currentBlocks().length - 1 ? 1 : 0}
 						title={item.title}
 					>

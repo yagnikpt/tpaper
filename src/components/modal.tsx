@@ -1,4 +1,4 @@
-import { useKeyboard } from "@opentui/solid";
+import { mergeProps, useKeyboard } from "@opentui/solid";
 import { type JSX, Show } from "solid-js";
 import useTheme from "@/hooks/useTheme";
 import { setStore, store } from "@/store/client";
@@ -11,13 +11,12 @@ interface ModalProps {
 	height?: number | "auto" | `${number}%`;
 }
 
-const Modal = ({
-	title,
-	children,
-	footer,
-	width = "60%",
-	height = 8,
-}: ModalProps) => {
+const Modal = (props: ModalProps) => {
+	const finalProps = mergeProps(
+		{ width: "60%", height: 8 },
+		props,
+	) as ModalProps;
+
 	useKeyboard((key) => {
 		if (key.name === "escape") {
 			setStore("modal", {
@@ -51,19 +50,19 @@ const Modal = ({
 				opacity={mode() === "light" ? 0.8 : 0.2}
 			/>
 			<box
-				width={width}
-				height={height}
+				width={finalProps.width}
+				height={finalProps.height}
 				titleAlignment="center"
-				title={title}
+				title={finalProps.title}
 				bottomTitleAlignment="right"
-				bottomTitle={footer}
+				bottomTitle={finalProps.footer}
 				backgroundColor={theme().surface}
 				border
 				borderColor={theme().border}
 				marginBottom={3}
 				justifyContent="space-between"
 			>
-				{children}
+				{finalProps.children}
 				<Show when={store.modal.errorMsg}>
 					<text alignSelf="flex-end" fg={theme().error}>
 						{store.modal.errorMsg}

@@ -8,15 +8,13 @@ function useTheme() {
 	const [mode, setMode] = createSignal<ThemeMode | null>(renderer.themeMode);
 	const [theme, setTheme] = createSignal<Theme>(getTheme(mode()));
 
-	renderer.on("theme_mode", (nextMode: ThemeMode) => {
-		setMode(nextMode);
-	});
+	// Theme listener handled in index.tsx
 
 	createEffect(() => {
 		setTheme(getTheme(mode()));
 	});
 
-	return { theme, mode };
+	return { theme, mode, setMode };
 }
 
 export default useTheme;
