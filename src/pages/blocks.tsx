@@ -18,7 +18,7 @@ const Blocks = (props: Props) => {
 	const currentBlocks = () => store.buffers[store.activeBuffer] ?? [];
 	let scrollBoxRef: ScrollBoxRenderable | undefined;
 
-	const { theme, mode } = useTheme();
+	const [theme, mode] = useTheme();
 	const renderer = useRenderer();
 
 	createEffect(() => {
@@ -30,6 +30,11 @@ const Blocks = (props: Props) => {
 				0,
 			);
 		}
+	});
+
+	createEffect(() => {
+		console.log(mode());
+		console.log(renderer.themeMode);
 	});
 
 	useBindings(() => ({

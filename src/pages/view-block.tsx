@@ -12,7 +12,7 @@ const ViewBlock = () => {
 	const [currentBlock, setCurrentBlock] = createSignal(cBlock());
 	if (!currentBlock()) return null;
 
-	const { theme, mode } = useTheme();
+	const [theme, mode] = useTheme();
 
 	useBindings(() => ({
 		enabled: store.screen === "view" && store.modal.type === null,

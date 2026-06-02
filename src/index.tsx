@@ -1,5 +1,5 @@
 import "@opentui/solid/preload";
-import { TextAttributes, type ThemeMode } from "@opentui/core";
+import { TextAttributes } from "@opentui/core";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { render, useRenderer } from "@opentui/solid";
@@ -7,7 +7,7 @@ import { createEffect, createSignal, Match, Switch } from "solid-js";
 import { handleCLIArgs } from "@/cli";
 import ModalRoot from "@/components/modal-root";
 import { saveConfig } from "@/config";
-import useTheme from "@/hooks/useTheme";
+import useTheme, { ThemeProvider } from "@/hooks/useTheme";
 import Blocks from "@/pages/blocks";
 import EditBlock from "@/pages/edit-block";
 import ViewBlock from "@/pages/view-block";
@@ -30,7 +30,7 @@ const App = () => {
 		saveConfig(store.config);
 	});
 
-	const { theme } = useTheme();
+	const [theme] = useTheme();
 	const [focused, setFocused] = createSignal(0);
 
 	createEffect(() => {
@@ -105,16 +105,12 @@ const Root = () => {
 	const renderer = useRenderer();
 	const keymap = createDefaultOpenTuiKeymap(renderer);
 
-	const { setMode } = useTheme();
-
-	renderer.on("theme_mode", (nextMode: ThemeMode) => {
-		setMode(nextMode);
-	});
-
 	return (
 		<KeymapProvider keymap={keymap}>
 			<GlobalBindings />
-			<App />
+			<ThemeProvider>
+				<App />
+			</ThemeProvider>
 		</KeymapProvider>
 	);
 };

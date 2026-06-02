@@ -9,7 +9,7 @@ const Input = ({
 	onSubmit: (val: string) => void;
 }) => {
 	const [value, setValue] = createSignal(initialValue ?? "");
-	const { theme } = useTheme();
+	const [theme] = useTheme();
 
 	return (
 		<box>

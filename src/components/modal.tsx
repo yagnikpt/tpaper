@@ -26,7 +26,7 @@ const Modal = (props: ModalProps) => {
 			});
 		}
 	});
-	const { theme, mode } = useTheme();
+	const [theme, mode] = useTheme();
 
 	return (
 		<box

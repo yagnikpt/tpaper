@@ -27,7 +27,7 @@ const EditBlock = () => {
 	const [input, setInput] = createSignal(currentBlock()!.content ?? "");
 	let textAreaRef: TextareaRenderable | undefined;
 
-	const { theme } = useTheme();
+	const [theme] = useTheme();
 
 	useBindings(() => ({
 		enabled: store.screen === "edit" && store.modal.type === null,

@@ -14,7 +14,7 @@ const KEYBINDS = [
 ];
 
 const Keybinds = () => {
-	const { theme } = useTheme();
+	const [theme] = useTheme();
 	return (
 		<box>
 			<For each={KEYBINDS}>

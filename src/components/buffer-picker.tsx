@@ -13,7 +13,7 @@ const BufferPicker = () => {
 	const foundIndex = options.findIndex((b) => b.value === store.activeBuffer);
 	const index = foundIndex !== -1 ? foundIndex : 0;
 	const [highlighted, setHighlighted] = createSignal(index);
-	const { theme } = useTheme();
+	const [theme] = useTheme();
 
 	useBindings(() => ({
 		commands: [
