@@ -5,8 +5,7 @@ import type { BunPlugin } from "bun";
 const VERSION = process.env.VERSION;
 
 const wasmPath = path.resolve(
-	import.meta.dirname,
-	"node_modules/web-tree-sitter/web-tree-sitter.wasm",
+	"node_modules/web-tree-sitter/tree-sitter.wasm",
 );
 const parserWorker = path.resolve(
 	"node_modules/@opentui/core/parser.worker.js",
@@ -20,7 +19,7 @@ const fixTreeSitterWasm: BunPlugin = {
 			namespace: "virtual",
 		}));
 		build.onLoad({ filter: /.*/, namespace: "virtual" }, () => ({
-			contents: `export default ${JSON.stringify(wasmPath)};`,
+			contents: `export default import.meta.dirname + "/tree-sitter.wasm";`,
 			loader: "js",
 		}));
 	},
@@ -41,6 +40,9 @@ if (!parserResult.success) {
 	process.exit(1);
 }
 
+// Copy web-tree-sitter.wasm to dist/ so the worker can find it at runtime
+await Bun.write("dist/tree-sitter.wasm", Bun.file(wasmPath));
+
 const result = await Bun.build({
 	entrypoints: ["./src/index.tsx"],
 	plugins: [solidPlugin],
@@ -50,7 +52,7 @@ const result = await Bun.build({
 	minify: true,
 	sourcemap: false,
 	define: {
-		OTUI_TREE_SITTER_WORKER_PATH: parserWorker,
+		OTUI_TREE_SITTER_WORKER_PATH: "undefined",
 		VERSION: VERSION ?? "dev-build",
 	},
 });
