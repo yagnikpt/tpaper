@@ -1,13 +1,20 @@
 import { type ScrollBoxRenderable, TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { useRenderer } from "@opentui/solid";
-import { type Accessor, createEffect, For, type Setter } from "solid-js";
+import {
+	type Accessor,
+	createEffect,
+	createSignal,
+	For,
+	type Setter,
+} from "solid-js";
 import useTheme from "@/hooks/useTheme";
-import { createNewBlock, deleteBlock } from "@/store/actions";
+import { createNewBlock, deleteBlock, writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Block } from "@/types";
 import { clamp } from "@/utils";
 import { darkSyntaxStyle, lightSyntaxStyle } from "@/utils/markdown-styles";
+import { systemEditorEdit } from "@/utils/system-editor";
 
 interface Props {
 	focused: Accessor<number>;
@@ -20,6 +27,8 @@ const Blocks = (props: Props) => {
 
 	const [theme, mode] = useTheme();
 	const renderer = useRenderer();
+
+	const [editorIsActive, setEditorIsActive] = createSignal(false);
 
 	createEffect(() => {
 		if (scrollBoxRef) {
@@ -108,6 +117,40 @@ const Blocks = (props: Props) => {
 				},
 			},
 			{
+				name: "edit-in-system-editor",
+				run() {
+					const selected = currentBlocks()[props.focused()];
+					if (!selected) return;
+
+					queueMicrotask(async () => {
+						try {
+							renderer.pause();
+							process.stdin.removeAllListeners("data");
+							if (process.stdin.isTTY) {
+								process.stdin.setRawMode(false);
+							}
+							const newContent = await systemEditorEdit(selected.content);
+
+							if (newContent !== undefined) {
+								const block = writeBlock(
+									store.activeBuffer,
+									{ ...selected, content: newContent },
+									currentBlocks(),
+								);
+								setStore("buffers", store.activeBuffer, props.focused(), block);
+							}
+						} catch (error) {
+							console.error("Native execution error:", error);
+						} finally {
+							if (process.stdin.isTTY) {
+								process.stdin.setRawMode(true);
+							}
+							renderer.resume();
+						}
+					});
+				},
+			},
+			{
 				name: "delete-block",
 				run() {
 					const selected = currentBlocks()[props.focused()];
@@ -142,8 +185,14 @@ const Blocks = (props: Props) => {
 			{ key: "k", cmd: "focus-up" },
 			{ key: "down", cmd: "focus-down" },
 			{ key: "j", cmd: "focus-down" },
-			{ key: "return", cmd: "edit-block" },
+			{
+				key: "return",
+				cmd: store.config.systemEditorByDefault
+					? "edit-in-system-editor"
+					: "edit-block",
+			},
 			{ key: "i", cmd: "edit-block" },
+			{ key: "ctrl+i", cmd: "edit-in-system-editor" },
 			{ key: "v", cmd: "view-block" },
 			{ key: "ctrl+e", cmd: "goto-end" },
 			{ key: "ctrl+a", cmd: "goto-start" },

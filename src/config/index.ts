@@ -6,6 +6,7 @@ import type { Config } from "@/types";
 
 const DEFAULT_CONFIG: Config = {
 	lastActiveBuffer: "main",
+	systemEditorByDefault: false,
 };
 
 const { config: configDir } = envPaths("tpaper", { suffix: "cli" });

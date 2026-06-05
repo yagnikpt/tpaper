@@ -12,6 +12,37 @@ Yes its a [heynote](https://github.com/heyman/heynote) rip-off for the terminal 
 - **Buffer** — a named collection of blocks, stored as a Markdown file on disk. Roughly analogous to a notebook or a tab.
 - **Block** — an individual note within a buffer, written in Markdown and rendered with syntax highlighting in the terminal.
 
+## Installation
+
+```bash
+brew install yagnikpt/tap/tpaper
+```
+
+```bash
+bun install -g @yagnikpt/tpaper
+```
+
+## Keybindings & Features
+* `ctrl+h` — opens the keymaps menu
+
+### Editing
+* `i` — Edit the block inline using the built-in editor
+* `ctrl+i` — Edit the block using your external system editor (configured via `$EDITOR`, defaults to `nano`)
+* `enter` — Edit block (opens the built-in inline editor by default, or your system editor if configured)
+
+## Configuration
+
+The configuration file is located at `~/.config/tpaper-cli/config.yaml` (Linux example).
+
+You can customize the following settings:
+
+```yaml
+# ~/.config/tpaper-cli/config.yaml
+
+# If true, pressing enter/return on a block opens it in your external system editor by default.
+systemEditorByDefault: false
+```
+
 ## Data storage
 
 Everything is stored locally. The exact paths depend on your OS.
@@ -23,16 +54,6 @@ Everything is stored locally. The exact paths depend on your OS.
 
 Buffers are plain Markdown files. Blocks are delimited by HTML comments so the files remain human-readable outside the app.
 
-## Installation
-
-```bash
-brew install yagnikpt/tap/tpaper
-```
-
-```bash
-bun install -g @yagnikpt/tpaper
-```
-
 ## Development
 
 ```bash
@@ -43,14 +64,10 @@ bun dev        # run with file watching
 ## Building
 
 ```bash
-bun run build          # produces dist/tpaper (linux-x64 by default)
+bun run build
 ```
 
-You can override the target and output path via environment variables:
-
-```bash
-BUN_TARGET=bun-darwin-arm64 OUTFILE=./dist/tpaper-mac bun run build
-```
+Builds for all supported platforms (linux-x64, darwin-arm64, linux-arm64, windows-x64, darwin-x64).
 
 ## Stack
 

@@ -61,7 +61,7 @@ const App = () => {
 					</Match>
 					<Match when={store.screen === "edit"}>
 						<text maxHeight={1} fg={theme().fg} attributes={TextAttributes.DIM}>
-							esc | ^s: save & return | ^v: view mode
+							esc | ^s: save & return | ^v: view mode | ^i: open in $EDITOR
 						</text>
 					</Match>
 					<Match when={store.screen === "view"}>

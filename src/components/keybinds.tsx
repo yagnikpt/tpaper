@@ -10,6 +10,7 @@ const KEYBINDS = [
 	{ value: "ctrl+e", help: "go to end" },
 	{ value: "ctrl+a", help: "go to start" },
 	{ value: "ctrl+s", help: "save the edit" },
+	{ value: "ctrl+i", help: "open in $EDITOR" },
 	{ value: "v", help: "view mode" },
 ];
 

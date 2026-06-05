@@ -16,6 +16,7 @@ type Buffer = Block[];
 
 interface Config {
 	lastActiveBuffer: string;
+	systemEditorByDefault: boolean;
 }
 
 interface Store {

@@ -5,6 +5,7 @@ node_modules
 out
 dist
 artifacts
+build_artifacts
 *.tgz
 
 # code coverage

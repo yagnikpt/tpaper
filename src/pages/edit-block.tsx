@@ -1,5 +1,6 @@
 import type { KeyBinding, TextareaRenderable } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
+import { useRenderer } from "@opentui/solid";
 import {
 	createEffect,
 	createMemo,
@@ -11,6 +12,7 @@ import useTheme from "@/hooks/useTheme";
 import { writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Buffer } from "@/types";
+import { systemEditorEdit } from "@/utils/system-editor";
 import {
 	checkForListFormatting,
 	getLineFromCursorRowIndex,
@@ -23,6 +25,7 @@ const EditBlock = () => {
 	);
 
 	const [currentBlock, setCurrentBlock] = createSignal(cBlock());
+	const renderer = useRenderer();
 	if (!currentBlock()) return null;
 	const [input, setInput] = createSignal(currentBlock()!.content ?? "");
 	let textAreaRef: TextareaRenderable | undefined;
@@ -99,6 +102,35 @@ const EditBlock = () => {
 					textAreaRef!.insertChar("\n");
 				},
 			},
+			{
+				name: "edit-in-system-editor",
+				run() {
+					queueMicrotask(async () => {
+						try {
+							renderer.pause();
+							process.stdin.removeAllListeners("data");
+							if (process.stdin.isTTY) {
+								process.stdin.setRawMode(false);
+							}
+							const newContent = await systemEditorEdit(
+								currentBlock()!.content,
+							);
+
+							if (newContent !== undefined) {
+								setInput(newContent);
+								setStore("screen", "blocks");
+							}
+						} catch (error) {
+							console.error("Native execution error:", error);
+						} finally {
+							if (process.stdin.isTTY) {
+								process.stdin.setRawMode(true);
+							}
+							renderer.resume();
+						}
+					});
+				},
+			},
 		],
 		bindings: [
 			{ key: "escape", cmd: "save-and-return" },
@@ -106,6 +138,7 @@ const EditBlock = () => {
 			{ key: "ctrl+t", cmd: "edit-title" },
 			{ key: "ctrl+v", cmd: "view-block" },
 			{ key: "tab", cmd: "tab-it" },
+			{ key: "ctrl+i", cmd: "edit-in-system-editor" },
 			{ key: "return", cmd: "newline-it" },
 		],
 	}));
