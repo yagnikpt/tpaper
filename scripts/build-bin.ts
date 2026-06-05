@@ -11,23 +11,23 @@ const workerRelativePath = path
 const BUILD_TARGETS: { target: Bun.Build.CompileTarget; outfile: string }[] = [
 	{
 		target: "bun-linux-x64-modern",
-		outfile: "./artifacts/tpaper-linux-x64",
+		outfile: "./build_artifacts/tpaper-linux-amd64",
 	},
 	{
 		target: "bun-linux-arm64-modern",
-		outfile: "./artifacts/tpaper-linux-arm64",
+		outfile: "./build_artifacts/tpaper-linux-arm64",
 	},
 	{
 		target: "bun-darwin-arm64-modern",
-		outfile: "./artifacts/tpaper-darwin-arm64",
+		outfile: "./build_artifacts/tpaper-darwin-arm64",
 	},
 	{
 		target: "bun-darwin-x64-modern",
-		outfile: "./artifacts/tpaper-darwin-x64",
+		outfile: "./build_artifacts/tpaper-darwin-amd64",
 	},
 	{
 		target: "bun-windows-x64-modern",
-		outfile: "./artifacts/tpaper-windows-x64",
+		outfile: "./build_artifacts/tpaper-windows-amd64",
 	},
 ];
 

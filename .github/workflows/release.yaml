@@ -7,12 +7,13 @@ on:
 
 permissions:
   contents: write
+  models: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -33,7 +34,7 @@ jobs:
 
       - run: bun run build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build-binaries
           path: build_artifacts/
@@ -42,7 +43,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -122,7 +123,7 @@ jobs:
           mkdir -p dist
 
           # --- Unix targets (tar.gz) ---
-          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
+          for target in darwin-arm64 darwin-amd64 linux-arm64 linux-amd64; do
             BINARY="tpaper-${target}"
             ARCHIVE_DIR="tpaper-${VERSION}-${target}"
 
@@ -135,9 +136,9 @@ jobs:
           done
 
           # --- Windows (zip) ---
-          ARCHIVE_DIR="tpaper-${VERSION}-windows-x64"
+          ARCHIVE_DIR="tpaper-${VERSION}-windows-amd64"
           mkdir -p "$ARCHIVE_DIR"
-          cp build_artifacts/tpaper-windows-x64.exe "$ARCHIVE_DIR/tpaper.exe"
+          cp build_artifacts/tpaper-windows-amd64.exe "$ARCHIVE_DIR/tpaper.exe"
           cp README.md LICENSE "$ARCHIVE_DIR/"
 
           zip -r "dist/${ARCHIVE_DIR}.zip" "$ARCHIVE_DIR"
