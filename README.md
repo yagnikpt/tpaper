@@ -23,6 +23,16 @@ Everything is stored locally. The exact paths depend on your OS.
 
 Buffers are plain Markdown files. Blocks are delimited by HTML comments so the files remain human-readable outside the app.
 
+## Installation
+
+```bash
+brew install yagnikpt/tap/tpaper
+```
+
+```bash
+bun install -g @yagnikpt/tpaper
+```
+
 ## Development
 
 ```bash
