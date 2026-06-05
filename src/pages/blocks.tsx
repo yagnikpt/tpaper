@@ -32,11 +32,6 @@ const Blocks = (props: Props) => {
 		}
 	});
 
-	createEffect(() => {
-		console.log(mode());
-		console.log(renderer.themeMode);
-	});
-
 	useBindings(() => ({
 		enabled: store.screen === "blocks" && store.modal.type === null,
 		commands: [
@@ -49,10 +44,10 @@ const Blocks = (props: Props) => {
 						store.activeBuffer,
 						nextTitle,
 						blocks,
-						props.focused() === 0 ? 0 : props.focused() + 1,
+						blocks.length === 0 ? 0 : props.focused() + 1,
 					);
 					setStore("buffers", store.activeBuffer, newBlocks);
-					props.setFocused((p) => (p === 0 ? 0 : p + 1));
+					props.setFocused((p) => (blocks.length === 0 ? 0 : p + 1));
 				},
 			},
 			{

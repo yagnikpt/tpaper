@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build with Bun
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - run: bun ci --cpu="*" --os="*"
+
+      - run: bun run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-binaries
+          path: build_artifacts/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if release already exists
+        id: check
+        run: |
+          if gh release view "${{ steps.version.outputs.VERSION }}" &>/dev/null; then
+            echo "EXISTS=true" >> $GITHUB_OUTPUT
+          else
+            echo "EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Find previous release
+        if: steps.check.outputs.EXISTS == 'false'
+        id: prev
+        run: |
+          PREV_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')
+          echo "TAG=${PREV_TAG}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Generate diff for release notes
+        if: steps.check.outputs.EXISTS == 'false'
+        id: diff
+        run: |
+          if [ -n "${{ steps.prev.outputs.TAG }}" ]; then
+            DIFF=$(git diff "${{ steps.prev.outputs.TAG }}"..HEAD --stat && echo "---" && git log "${{ steps.prev.outputs.TAG }}"..HEAD --pretty=format:"%h %s")
+          else
+            FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+            DIFF=$(git diff "${FIRST_COMMIT}"..HEAD --stat && echo "---" && git log "${FIRST_COMMIT}"..HEAD --pretty=format:"%h %s")
+          fi
+          EOF_MARKER=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64)
+          echo "DIFF<<${EOF_MARKER}" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "${EOF_MARKER}" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes with AI
+        if: steps.check.outputs.EXISTS == 'false'
+        id: notes
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            You are writing release notes for version ${{ steps.version.outputs.VERSION }} of "huba" — a slick TUI for managing Claude Code tasks.
+            Below is the diff summary and commit log since the previous release (${{ steps.prev.outputs.TAG || 'initial' }}):
+
+            ${{ steps.diff.outputs.DIFF }}
+
+            Write concise, user-facing release notes in markdown. Group changes into sections like "New Features", "Improvements", "Bug Fixes" as appropriate. Only include sections that have changes. Do not include the version number as a heading. Do not include raw commit hashes.
+
+            Style guide — match the project's voice:
+            - Casual, punchy, developer-first tone. Talk to the reader directly ("you", not "users").
+            - Short sentences. Em dashes for asides — like this.
+            - Bold key terms for scannability.
+            - Be specific about what changed. No filler, no corporate fluff, no "we're excited to announce".
+            - Keep it fun but informative — think changelog meets dev blog, not press release.
+            - Use active voice and imperative mood where it fits ("Browse tasks", not "Tasks can now be browsed").
+
+      - uses: actions/download-artifact@v8
+        if: steps.check.outputs.EXISTS == 'false'
+        with:
+          name: build-binaries
+          path: build_artifacts/
+
+      - name: Package artifacts
+        if: steps.check.outputs.EXISTS == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          mkdir -p dist
+
+          # --- Unix targets (tar.gz) ---
+          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
+            BINARY="tpaper-${target}"
+            ARCHIVE_DIR="tpaper-${VERSION}-${target}"
+
+            mkdir -p "$ARCHIVE_DIR"
+            cp "build_artifacts/${BINARY}" "$ARCHIVE_DIR/tpaper"
+            cp README.md LICENSE "$ARCHIVE_DIR/"
+
+            tar -czf "dist/${ARCHIVE_DIR}.tar.gz" "$ARCHIVE_DIR"
+            rm -rf "$ARCHIVE_DIR"
+          done
+
+          # --- Windows (zip) ---
+          ARCHIVE_DIR="tpaper-${VERSION}-windows-x64"
+          mkdir -p "$ARCHIVE_DIR"
+          cp build_artifacts/tpaper-windows-x64.exe "$ARCHIVE_DIR/tpaper.exe"
+          cp README.md LICENSE "$ARCHIVE_DIR/"
+
+          zip -r "dist/${ARCHIVE_DIR}.zip" "$ARCHIVE_DIR"
+          rm -rf "$ARCHIVE_DIR"
+
+      - name: Generate checksums
+        if: steps.check.outputs.EXISTS == 'false'
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Create release and upload binaries
+        if: steps.check.outputs.EXISTS == 'false'
+        run: |
+          gh release create "${{ steps.version.outputs.VERSION }}" \
+            --title "${{ steps.version.outputs.VERSION }}" \
+            --latest \
+            --notes-file <(cat "${{ steps.notes.outputs.response-file }}") \
+            dist/*
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+      - uses: geekyeggo/delete-artifact@v6
+        with:
+          name: build-binaries

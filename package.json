@@ -1,11 +1,21 @@
 {
-	"name": "tpaper",
+	"name": "@yagnikpt/tpaper",
 	"module": "src/index.tsx",
 	"type": "module",
-	"private": true,
+	"bin": {
+		"tpaper": "./dist/index.js"
+	},
+	"engines": {
+		"bun": ">=1.3.0"
+	},
+	"files": [
+		"dist"
+	],
+	"packageManager": "bun@1.3.14",
 	"scripts": {
 		"dev": "bun run --watch src/index.tsx",
-		"build": "bun run build.ts"
+		"build": "bun run scripts/build-bin.ts",
+		"build:npm": "bun run scripts/build-npm.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
@@ -20,6 +30,17 @@
 		"@opentui/solid": "^0.3.1",
 		"env-paths": "^4.0.0",
 		"js-yaml": "^4.2.0",
-		"solid-js": "^1.9.13"
-	}
+		"solid-js": "^1.9.13",
+		"uuidv7": "^1.2.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yagnikpt/tpaper"
+	},
+	"license": "MIT",
+	"keywords": [
+		"notes",
+		"cli"
+	],
+	"author": "Yagnik Patel <yagnik.pt@gmail.com>"
 }

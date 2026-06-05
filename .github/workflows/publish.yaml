@@ -1,0 +1,53 @@
+on:
+  release:
+    types: [published]
+
+jobs:
+  homebrew:
+    name: Publish to Homebrew
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - uses: Justintime50/homebrew-releaser@v3
+        with:
+          homebrew_owner: yagnikpt
+          homebrew_tap: homebrew-tap
+          github_token: ${{ secrets.RELEASE_TOKEN }}
+          install: 'bin.install "tpaper"'
+          test: 'assert_predicate bin/"tpaper", :exist?'
+          version: ${{ steps.version.outputs.VERSION }}
+          target_darwin_amd64: true
+          target_darwin_arm64: true
+          target_linux_amd64: true
+          target_linux_arm64: true
+
+  npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    steps:
+      - id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun ci --cpu="*" --os="*"
+      - run: bun run build:npm
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+      - run: bun scripts/prepublish-npm.ts
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+      - run: bun publish --access=public
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}

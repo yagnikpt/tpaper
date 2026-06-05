@@ -1,4 +1,4 @@
-import { randomUUIDv7 } from "bun";
+import { uuidv7 } from "uuidv7";
 import { loadConfig } from "@/config";
 import {
 	createBufferFile,
@@ -79,7 +79,7 @@ function createNewBlock(
 	index?: number,
 ) {
 	const block = {
-		id: randomUUIDv7(),
+		id: uuidv7(),
 		title: title,
 		content: "",
 	};

@@ -1,3 +1,5 @@
+#!/usr/bin/env bun
+
 import "@opentui/solid/preload";
 import { TextAttributes } from "@opentui/core";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
