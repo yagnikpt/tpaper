@@ -32,6 +32,8 @@ bun install -g @yagnikpt/tpaper
 
 ## Configuration
 
+Run `tpaper --help` to see the necessary flags and options.
+
 The configuration file is located at `~/.config/tpaper-cli/config.yaml` (Linux example).
 
 You can customize the following settings:
