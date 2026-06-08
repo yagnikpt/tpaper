@@ -1,4 +1,4 @@
-import type { KeyBinding, TextareaRenderable } from "@opentui/core";
+import type { TextareaRenderable } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { useRenderer } from "@opentui/solid";
 import {
@@ -12,7 +12,7 @@ import useTheme from "@/hooks/useTheme";
 import { writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Buffer } from "@/types";
-import { systemEditorEdit } from "@/utils/system-editor";
+import { openEditor } from "@/utils/system-editor";
 import {
 	checkForListFormatting,
 	getLineFromCursorRowIndex,
@@ -106,27 +106,13 @@ const EditBlock = () => {
 				name: "edit-in-system-editor",
 				run() {
 					queueMicrotask(async () => {
-						try {
-							renderer.pause();
-							process.stdin.removeAllListeners("data");
-							if (process.stdin.isTTY) {
-								process.stdin.setRawMode(false);
-							}
-							const newContent = await systemEditorEdit(
-								currentBlock()!.content,
-							);
-
-							if (newContent !== undefined) {
-								setInput(newContent);
-								setStore("screen", "blocks");
-							}
-						} catch (error) {
-							console.error("Native execution error:", error);
-						} finally {
-							if (process.stdin.isTTY) {
-								process.stdin.setRawMode(true);
-							}
-							renderer.resume();
+						const newContent = await openEditor({
+							value: currentBlock()!.content,
+							renderer: renderer,
+						});
+						if (newContent !== undefined) {
+							setInput(newContent);
+							setStore("screen", "blocks");
 						}
 					});
 				},

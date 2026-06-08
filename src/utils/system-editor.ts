@@ -1,40 +1,50 @@
-import { unlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { file, spawnSync, write } from "bun";
-import { createUniqueId } from "solid-js";
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import type { Stream } from "node:stream";
+import type { CliRenderer } from "@opentui/core";
 
-const systemEditorEdit = async (initialContent: string) => {
-	const tempFilePath = join(tmpdir(), `opentui-note-${createUniqueId()}.md`);
+type EditorStdio = "inherit" | "pipe" | "ignore" | number | Stream;
 
+async function openEditor(input: {
+	value: string;
+	renderer: CliRenderer;
+	cwd?: string;
+	stdin?: EditorStdio;
+}) {
+	const editor = process.env.VISUAL || process.env.EDITOR;
+	if (!editor) return;
+	const file = path.join(os.tmpdir(), `${Date.now()}.md`);
+	await writeFile(file, input.value);
+	input.renderer.suspend();
+	input.renderer.currentRenderBuffer.clear();
 	try {
-		await write(tempFilePath, initialContent);
-
-		const systemEditor = process.env.EDITOR || "nano";
-		const args = [tempFilePath];
-
-		if (systemEditor.includes("code")) {
-			args.unshift("--wait");
-		}
-
-		spawnSync({
-			cmd: [systemEditor, ...args],
-			stdout: "inherit",
-			stdin: "inherit",
-			stderr: "inherit",
-			env: { ...process.env },
+		await new Promise<void>((resolve, reject) => {
+			const parts = editor.split(" ");
+			const child = spawn(parts[0]!, [...parts.slice(1), file], {
+				cwd: input.cwd && existsSync(input.cwd) ? input.cwd : process.cwd(),
+				stdio: [input.stdin ?? "inherit", "inherit", "inherit"],
+				shell: process.platform === "win32",
+			});
+			child.on("error", reject);
+			child.on("exit", (code, signal) => {
+				if (code === 0) return resolve();
+				reject(
+					new Error(
+						`Editor exited with ${signal ? `signal ${signal}` : `code ${code}`}`,
+					),
+				);
+			});
 		});
-
-		const updatedFile = file(tempFilePath);
-		const updatedText = await updatedFile.text();
-		return updatedText;
-	} catch (error) {
-		console.error("Failed executing editor pipeline:", error);
+		return (await readFile(file, "utf8")) || undefined;
 	} finally {
-		try {
-			unlinkSync(tempFilePath);
-		} catch {}
+		await rm(file, { force: true }).catch(() => {});
+		input.renderer.currentRenderBuffer.clear();
+		input.renderer.resume();
+		input.renderer.requestRender();
 	}
-};
+}
 
-export { systemEditorEdit };
+export { openEditor };

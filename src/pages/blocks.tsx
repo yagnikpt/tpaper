@@ -1,20 +1,14 @@
 import { type ScrollBoxRenderable, TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { useRenderer } from "@opentui/solid";
-import {
-	type Accessor,
-	createEffect,
-	createSignal,
-	For,
-	type Setter,
-} from "solid-js";
+import { type Accessor, createEffect, For, type Setter } from "solid-js";
 import useTheme from "@/hooks/useTheme";
 import { createNewBlock, deleteBlock, writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Block } from "@/types";
 import { clamp } from "@/utils";
 import { darkSyntaxStyle, lightSyntaxStyle } from "@/utils/markdown-styles";
-import { systemEditorEdit } from "@/utils/system-editor";
+import { openEditor } from "@/utils/system-editor";
 
 interface Props {
 	focused: Accessor<number>;
@@ -27,8 +21,6 @@ const Blocks = (props: Props) => {
 
 	const [theme, mode] = useTheme();
 	const renderer = useRenderer();
-
-	const [editorIsActive, setEditorIsActive] = createSignal(false);
 
 	createEffect(() => {
 		if (scrollBoxRef) {
@@ -123,29 +115,16 @@ const Blocks = (props: Props) => {
 					if (!selected) return;
 
 					queueMicrotask(async () => {
-						try {
-							renderer.pause();
-							process.stdin.removeAllListeners("data");
-							if (process.stdin.isTTY) {
-								process.stdin.setRawMode(false);
-							}
-							const newContent = await systemEditorEdit(selected.content);
-
-							if (newContent !== undefined) {
-								const block = writeBlock(
-									store.activeBuffer,
-									{ ...selected, content: newContent },
-									currentBlocks(),
-								);
-								setStore("buffers", store.activeBuffer, props.focused(), block);
-							}
-						} catch (error) {
-							console.error("Native execution error:", error);
-						} finally {
-							if (process.stdin.isTTY) {
-								process.stdin.setRawMode(true);
-							}
-							renderer.resume();
+						const content = await openEditor({
+							value: selected.content,
+							renderer: renderer,
+						});
+						if (content) {
+							writeBlock(
+								store.activeBuffer,
+								{ ...selected, content },
+								currentBlocks(),
+							);
 						}
 					});
 				},
