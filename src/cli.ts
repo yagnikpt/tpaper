@@ -23,8 +23,7 @@ export function handleCLIArgs(): void {
 		switch (arg) {
 			case "-v":
 			case "--version": {
-				const version =
-					typeof VERSION !== "undefined" ? VERSION : "(dev)";
+				const version = typeof VERSION !== "undefined" ? VERSION : "(dev)";
 				console.log(version);
 				process.exit(0);
 				break;

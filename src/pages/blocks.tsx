@@ -119,12 +119,14 @@ const Blocks = (props: Props) => {
 							value: selected.content,
 							renderer: renderer,
 						});
+						console.log(content)
 						if (content) {
 							writeBlock(
 								store.activeBuffer,
 								{ ...selected, content },
 								currentBlocks(),
 							);
+							setStore("buffers", store.activeBuffer, props.focused(), { ...selected, content })
 						}
 					});
 				},

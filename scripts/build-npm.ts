@@ -4,9 +4,7 @@ import type { BunPlugin } from "bun";
 
 const VERSION = process.env.VERSION;
 
-const wasmPath = path.resolve(
-	"node_modules/web-tree-sitter/tree-sitter.wasm",
-);
+const wasmPath = path.resolve("node_modules/web-tree-sitter/tree-sitter.wasm");
 const parserWorker = path.resolve(
 	"node_modules/@opentui/core/parser.worker.js",
 );

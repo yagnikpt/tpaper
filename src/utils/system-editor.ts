@@ -17,8 +17,6 @@ async function openEditor(input: {
 	const editor = process.env.VISUAL || process.env.EDITOR;
 	if (!editor) return;
 	const file = path.join(os.tmpdir(), `${Date.now()}.md`);
-	const cwd =
-		input.cwd && existsSync(input.cwd) ? input.cwd : path.dirname(file);
 	await writeFile(file, input.value);
 	input.renderer.suspend();
 	input.renderer.currentRenderBuffer.clear();
@@ -26,7 +24,7 @@ async function openEditor(input: {
 		await new Promise<void>((resolve, reject) => {
 			const parts = editor.split(" ");
 			const child = spawn(parts[0]!, [...parts.slice(1), file], {
-				cwd,
+				cwd: input.cwd && existsSync(input.cwd) ? input.cwd : process.cwd(),
 				stdio: [input.stdin ?? "inherit", "inherit", "inherit"],
 				shell: process.platform === "win32",
 			});

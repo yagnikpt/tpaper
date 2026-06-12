@@ -110,7 +110,7 @@ const EditBlock = () => {
 							value: currentBlock()!.content,
 							renderer: renderer,
 						});
-						if (newContent !== undefined) {
+						if (newContent) {
 							setInput(newContent);
 							setStore("screen", "blocks");
 						}
@@ -128,10 +128,6 @@ const EditBlock = () => {
 			{ key: "return", cmd: "newline-it" },
 		],
 	}));
-
-	//  const textAreaKeybindings: KeyBinding = {
-	//    action: ""
-	// }
 
 	createEffect(() => {
 		setCurrentBlock(cBlock());
