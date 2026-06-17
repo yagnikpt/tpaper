@@ -7,6 +7,12 @@ jobs:
     name: Publish to Homebrew
     runs-on: ubuntu-latest
     steps:
+      - id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - uses: Justintime50/homebrew-releaser@v3
         with:
           homebrew_owner: yagnikpt
@@ -14,6 +20,7 @@ jobs:
           github_token: ${{ secrets.RELEASE_TOKEN }}
           install: 'bin.install "tpaper"'
           test: 'assert_predicate bin/"tpaper", :exist?'
+          version: ${{ steps.version.outputs.VERSION }}
           target_darwin_amd64: true
           target_darwin_arm64: true
           target_linux_amd64: true
