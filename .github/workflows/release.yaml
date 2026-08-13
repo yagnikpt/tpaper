@@ -91,23 +91,47 @@ jobs:
       - name: Generate release notes with AI
         if: steps.check.outputs.EXISTS == 'false'
         id: notes
-        uses: actions/ai-inference@v1
-        with:
-          prompt: |
-            You are writing release notes for version ${{ steps.version.outputs.VERSION }} of "huba" — a slick TUI for managing Claude Code tasks.
-            Below is the diff summary and commit log since the previous release (${{ steps.prev.outputs.TAG || 'initial' }}):
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          DIFF_CONTENT: ${{ steps.diff.outputs.DIFF }}
+        run: |
+          cat << 'PROMPT_EOF' > prompt.txt
+          You are writing release notes for version ${{ steps.version.outputs.VERSION }} of "tpaper" — a terminal-based note-taking app built around the idea of buffers and blocks.
+          Below is the diff summary and commit log since the previous release (${{ steps.prev.outputs.TAG || 'initial' }}):
 
-            ${{ steps.diff.outputs.DIFF }}
+          Write concise, user-facing release notes in markdown. Group changes into sections like "New Features", "Improvements", "Bug Fixes" as appropriate. Only include sections that have changes. Do not include the version number as a heading. Do not include raw commit hashes.
 
-            Write concise, user-facing release notes in markdown. Group changes into sections like "New Features", "Improvements", "Bug Fixes" as appropriate. Only include sections that have changes. Do not include the version number as a heading. Do not include raw commit hashes.
+          Style guide — match the project's voice:
+          - Casual, punchy, developer-first tone. Talk to the reader directly ("you", not "users").
+          - Short sentences. Em dashes for asides — like this.
+          - Bold key terms for scannability.
+          - Be specific about what changed. No filler, no corporate fluff, no "we're excited to announce".
+          - Keep it fun but informative — think changelog meets dev blog, not press release.
+          - Use active voice and imperative mood where it fits ("Browse tasks", not "Tasks can now be browsed").
 
-            Style guide — match the project's voice:
-            - Casual, punchy, developer-first tone. Talk to the reader directly ("you", not "users").
-            - Short sentences. Em dashes for asides — like this.
-            - Bold key terms for scannability.
-            - Be specific about what changed. No filler, no corporate fluff, no "we're excited to announce".
-            - Keep it fun but informative — think changelog meets dev blog, not press release.
-            - Use active voice and imperative mood where it fits ("Browse tasks", not "Tasks can now be browsed").
+          ---
+          PROMPT_EOF
+          printf '\n%s\n' "$DIFF_CONTENT" >> prompt.txt
+
+          JSON_PAYLOAD=$(jq -n \
+            --rawfile content prompt.txt \
+            '{
+              model: "openai/gpt-oss-20b",
+              input: "$content",
+              reasoning: { effort: "low" }
+            }')
+
+          RESPONSE=$(curl -s -X POST "https://api.groq.com/openai/v1/responses" \
+            -H "Authorization: Bearer $GROQ_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD")
+
+          TEXT_OUTPUT=$(echo "$RESPONSE" | jq -r '.output[1].content[0].text')
+
+          EOF_MARKER=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64)
+          echo "ai_response<<${EOF_MARKER}" >> $GITHUB_OUTPUT
+          echo "$TEXT_OUTPUT" >> $GITHUB_OUTPUT
+          echo "${EOF_MARKER}" >> $GITHUB_OUTPUT
 
       - uses: actions/download-artifact@v8
         if: steps.check.outputs.EXISTS == 'false'
@@ -156,7 +180,7 @@ jobs:
           gh release create "${{ github.ref_name }}" \
             --title "${{ steps.version.outputs.VERSION }}" \
             --latest \
-            --notes-file <(cat "${{ steps.notes.outputs.response-file }}") \
+            --notes "${{ steps.notes.outputs.ai_response }}" \
             dist/*
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
