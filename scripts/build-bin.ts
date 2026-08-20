@@ -29,6 +29,10 @@ const BUILD_TARGETS: { target: Bun.Build.CompileTarget; outfile: string }[] = [
 		target: "bun-windows-x64-modern",
 		outfile: "./build_artifacts/tpaper-windows-amd64",
 	},
+	{
+		target: "bun-windows-arm64",
+		outfile: "./build_artifacts/tpaper-windows-arm64",
+	},
 ];
 
 const VERSION = process.env.VERSION;
