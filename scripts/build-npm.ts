@@ -1,45 +1,6 @@
-import path from "node:path";
 import solidPlugin from "@opentui/solid/bun-plugin";
-import type { BunPlugin } from "bun";
 
 const VERSION = process.env.VERSION;
-
-const wasmPath = path.resolve("node_modules/web-tree-sitter/tree-sitter.wasm");
-const parserWorker = path.resolve(
-	"node_modules/@opentui/core/parser.worker.js",
-);
-
-const fixTreeSitterWasm: BunPlugin = {
-	name: "fix-tree-sitter-wasm",
-	setup(build) {
-		build.onResolve({ filter: /web-tree-sitter\/tree-sitter\.wasm$/ }, () => ({
-			path: "tree-sitter-wasm-path",
-			namespace: "virtual",
-		}));
-		build.onLoad({ filter: /.*/, namespace: "virtual" }, () => ({
-			contents: `export default import.meta.dirname + "/tree-sitter.wasm";`,
-			loader: "js",
-		}));
-	},
-};
-
-const parserResult = await Bun.build({
-	entrypoints: [parserWorker],
-	outdir: "dist",
-	target: "bun",
-	format: "esm",
-	naming: "parser.worker.js",
-	plugins: [fixTreeSitterWasm],
-});
-
-if (!parserResult.success) {
-	console.error("Worker build failed");
-	for (const message of parserResult.logs) console.error(message);
-	process.exit(1);
-}
-
-// Copy web-tree-sitter.wasm to dist/ so the worker can find it at runtime
-await Bun.write("dist/tree-sitter.wasm", Bun.file(wasmPath));
 
 const result = await Bun.build({
 	entrypoints: ["./src/index.tsx"],
@@ -49,9 +10,16 @@ const result = await Bun.build({
 	format: "esm",
 	minify: true,
 	sourcemap: false,
+	external: [
+		"@opentui/*",
+		"solid-js",
+		"solid-js/*",
+		"env-paths",
+		"js-yaml",
+		"uuidv7",
+	],
 	define: {
-		OTUI_TREE_SITTER_WORKER_PATH: "undefined",
-		VERSION: VERSION ?? "dev-build",
+		VERSION: JSON.stringify(VERSION ?? "dev-build"),
 	},
 });
 
@@ -60,4 +28,4 @@ if (!result.success) {
 	process.exit(1);
 }
 
-console.log(`built successfully`);
+console.log("built successfully");

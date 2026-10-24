@@ -15,6 +15,7 @@ const BASE_STORE: Store = {
 	},
 	config: {
 		lastActiveBuffer: "main",
+		systemEditorByDefault: false,
 	},
 };
 

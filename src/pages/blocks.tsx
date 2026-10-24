@@ -7,7 +7,7 @@ import { createNewBlock, deleteBlock, writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
 import type { Block } from "@/types";
 import { clamp } from "@/utils";
-import { darkSyntaxStyle, lightSyntaxStyle } from "@/utils/markdown-styles";
+import { useMarkdownStyle } from "@/utils/markdown-styles";
 import { openEditor } from "@/utils/system-editor";
 
 interface Props {
@@ -21,6 +21,7 @@ const Blocks = (props: Props) => {
 
 	const [theme, mode] = useTheme();
 	const renderer = useRenderer();
+	const markdownStyle = useMarkdownStyle();
 
 	createEffect(() => {
 		if (scrollBoxRef) {
@@ -209,9 +210,7 @@ const Blocks = (props: Props) => {
 					>
 						<markdown
 							paddingBottom={item.content.trim() === "" ? 1 : 0}
-							syntaxStyle={
-								mode() === "light" ? lightSyntaxStyle : darkSyntaxStyle
-							}
+							syntaxStyle={markdownStyle()}
 							content={item.content}
 						/>
 					</box>

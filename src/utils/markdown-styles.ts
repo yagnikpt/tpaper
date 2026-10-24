@@ -1,6 +1,14 @@
-import { RGBA, SyntaxStyle } from "@opentui/core";
+import {
+	type CliRenderer,
+	RGBA,
+	type StyleDefinitionInput,
+	SyntaxStyle,
+} from "@opentui/core";
+import { useRenderer } from "@opentui/solid";
+import { createMemo } from "solid-js";
+import useTheme from "@/hooks/useTheme";
 
-const darkSyntaxStyle = SyntaxStyle.fromStyles({
+const darkStyles: Record<string, StyleDefinitionInput> = {
 	// Base fallback
 	default: { fg: RGBA.fromHex("#E6E0D6") },
 
@@ -41,9 +49,9 @@ const darkSyntaxStyle = SyntaxStyle.fromStyles({
 
 	// Tables
 	"markup.table": { fg: RGBA.fromHex("#D2C2A9") },
-});
+};
 
-const lightSyntaxStyle = SyntaxStyle.fromStyles({
+const lightStyles: Record<string, StyleDefinitionInput> = {
 	default: { fg: RGBA.fromHex("#2D2A26") },
 	conceal: { fg: RGBA.fromHex("#9E9E9E") },
 
@@ -74,6 +82,45 @@ const lightSyntaxStyle = SyntaxStyle.fromStyles({
 	"markup.raw.block": { fg: RGBA.fromHex("#2C5282") },
 
 	"markup.table": { fg: RGBA.fromHex("#4A453D") },
-});
+};
 
-export { darkSyntaxStyle, lightSyntaxStyle };
+export interface MarkdownStyles {
+	darkSyntaxStyle: SyntaxStyle;
+	lightSyntaxStyle: SyntaxStyle;
+}
+
+const stylesCache = new WeakMap<CliRenderer, MarkdownStyles>();
+
+export function getMarkdownStyles(renderer: CliRenderer): MarkdownStyles {
+	let cached = stylesCache.get(renderer);
+	if (!cached) {
+		cached = {
+			darkSyntaxStyle: SyntaxStyle.fromStyles(
+				darkStyles,
+				renderer.nativeScene,
+			),
+			lightSyntaxStyle: SyntaxStyle.fromStyles(
+				lightStyles,
+				renderer.nativeScene,
+			),
+		};
+		stylesCache.set(renderer, cached);
+	}
+	return cached;
+}
+
+export function useMarkdownStyles(): MarkdownStyles {
+	const renderer = useRenderer();
+	return getMarkdownStyles(renderer);
+}
+
+export function useMarkdownStyle() {
+	const renderer = useRenderer();
+	const [, mode] = useTheme();
+	return createMemo(() => {
+		const styles = getMarkdownStyles(renderer);
+		return mode() === "light" ? styles.lightSyntaxStyle : styles.darkSyntaxStyle;
+	});
+}
+
+export { darkStyles, lightStyles };

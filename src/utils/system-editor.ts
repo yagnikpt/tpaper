@@ -18,7 +18,7 @@ async function openEditor(input: {
 	if (!editor) return;
 	const file = path.join(os.tmpdir(), `${Date.now()}.md`);
 	await writeFile(file, input.value);
-	input.renderer.suspend();
+	await input.renderer.suspend();
 	input.renderer.currentRenderBuffer.clear();
 	try {
 		await new Promise<void>((resolve, reject) => {
@@ -42,7 +42,7 @@ async function openEditor(input: {
 	} finally {
 		await rm(file, { force: true }).catch(() => {});
 		input.renderer.currentRenderBuffer.clear();
-		input.renderer.resume();
+		await input.renderer.resume();
 		input.renderer.requestRender();
 	}
 }

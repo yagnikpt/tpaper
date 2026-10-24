@@ -2,7 +2,7 @@ import { useBindings } from "@opentui/keymap/solid";
 import { createEffect, createMemo, createSignal } from "solid-js";
 import useTheme from "@/hooks/useTheme";
 import { setStore, store } from "@/store/client";
-import { darkSyntaxStyle, lightSyntaxStyle } from "@/utils/markdown-styles";
+import { useMarkdownStyle } from "@/utils/markdown-styles";
 
 const ViewBlock = () => {
 	const cBlock = createMemo(() =>
@@ -12,7 +12,8 @@ const ViewBlock = () => {
 	const [currentBlock, setCurrentBlock] = createSignal(cBlock());
 	if (!currentBlock()) return null;
 
-	const [theme, mode] = useTheme();
+	const [theme] = useTheme();
+	const markdownStyle = useMarkdownStyle();
 
 	useBindings(() => ({
 		enabled: store.screen === "view" && store.modal.type === null,
@@ -50,7 +51,7 @@ const ViewBlock = () => {
 		>
 			<markdown
 				paddingBottom={currentBlock()!.content.trim() === "" ? 1 : 0}
-				syntaxStyle={mode() === "light" ? lightSyntaxStyle : darkSyntaxStyle}
+				syntaxStyle={markdownStyle()}
 				content={currentBlock()!.content}
 			/>
 		</scrollbox>
