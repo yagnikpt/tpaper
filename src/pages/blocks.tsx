@@ -120,7 +120,6 @@ const Blocks = (props: Props) => {
 							value: selected.content,
 							renderer: renderer,
 						});
-						console.log(content)
 						if (content) {
 							writeBlock(
 								store.activeBuffer,

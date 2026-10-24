@@ -14,20 +14,29 @@ async function openEditor(input: {
 	cwd?: string;
 	stdin?: EditorStdio;
 }) {
-	const editor = process.env.VISUAL || process.env.EDITOR;
-	if (!editor) return;
+	const defaultEditor = process.platform === "win32" ? "notepad" : "nano";
+	const editor = process.env.VISUAL || process.env.EDITOR || defaultEditor;
 	const file = path.join(os.tmpdir(), `${Date.now()}.md`);
+
 	await writeFile(file, input.value);
 	await input.renderer.suspend();
-	input.renderer.currentRenderBuffer.clear();
+
 	try {
 		await new Promise<void>((resolve, reject) => {
 			const parts = editor.split(" ");
-			const child = spawn(parts[0]!, [...parts.slice(1), file], {
+			const cmd = parts[0]!;
+			const args = parts.slice(1);
+
+			if (cmd.endsWith("code") && !args.includes("--wait") && !args.includes("-w")) {
+				args.push("--wait");
+			}
+
+			const child = spawn(cmd, [...args, file], {
 				cwd: input.cwd && existsSync(input.cwd) ? input.cwd : process.cwd(),
 				stdio: [input.stdin ?? "inherit", "inherit", "inherit"],
 				shell: process.platform === "win32",
 			});
+
 			child.on("error", reject);
 			child.on("exit", (code, signal) => {
 				if (code === 0) return resolve();
@@ -38,10 +47,12 @@ async function openEditor(input: {
 				);
 			});
 		});
+
 		return (await readFile(file, "utf8")) || undefined;
+	} catch {
+		return undefined;
 	} finally {
 		await rm(file, { force: true }).catch(() => {});
-		input.renderer.currentRenderBuffer.clear();
 		await input.renderer.resume();
 		input.renderer.requestRender();
 	}
