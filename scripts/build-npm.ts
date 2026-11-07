@@ -11,7 +11,11 @@ const result = await Bun.build({
 	minify: true,
 	sourcemap: false,
 	external: [
-		"@opentui/*",
+		"@opentui/core",
+		"@opentui/keymap",
+		"@opentui/keymap/*",
+		"@opentui/solid",
+		"@opentui/solid/*",
 		"solid-js",
 		"solid-js/*",
 		"env-paths",

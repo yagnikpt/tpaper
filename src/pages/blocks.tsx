@@ -1,7 +1,7 @@
 import { type ScrollBoxRenderable, TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { useRenderer } from "@opentui/solid";
-import { type Accessor, createEffect, For, type Setter } from "solid-js";
+import { type Accessor, createEffect, For, type Setter, Show } from "solid-js";
 import useTheme from "@/hooks/useTheme";
 import { createNewBlock, deleteBlock, writeBlock } from "@/store/actions";
 import { setStore, store } from "@/store/client";
@@ -186,13 +186,13 @@ const Blocks = (props: Props) => {
 			scrollbarOptions={{ width: 0 }}
 			ref={scrollBoxRef}
 		>
-			{currentBlocks().length === 0 && (
+			<Show when={currentBlocks().length === 0}>
 				<box flexGrow={1} justifyContent="center" alignItems="center">
 					<text fg={theme().fg} attributes={TextAttributes.DIM}>
 						No blocks! Create one with ctrl+b
 					</text>
 				</box>
-			)}
+			</Show>
 			<For each={currentBlocks()}>
 				{(item, index) => (
 					<box
